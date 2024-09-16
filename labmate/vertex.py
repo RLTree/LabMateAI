@@ -20,7 +20,7 @@ class Vertex:
         A dictionary of connected vertices and the weights of the edges.
     """
 
-    def __init__(self, value, cost, field):
+    def __init__(self, value, cost=0, field=None):
         """
         Initializes a Vertex with a value and an empty dictionary for edges.
 

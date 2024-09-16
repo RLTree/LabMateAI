@@ -12,7 +12,7 @@ Classes:
 
 from math import inf
 from heapq import heappush, heappop
-from vertex import Vertex
+from .vertex import Vertex
 
 
 class Graph:
@@ -42,7 +42,10 @@ class Graph:
         Args:
             tool (Vertex): The tool to be added to the graph.
         """
-        self.graph_dict[tool.value] = tool
+        if isinstance(tool, Vertex):
+            self.graph_dict[tool.value] = tool
+        else:
+            raise TypeError("Expected a Vertex instance.")
 
     def add_neighbor(self, from_tool, to_tool, weight=0):
         """
