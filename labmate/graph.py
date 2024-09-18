@@ -12,7 +12,7 @@ Classes:
 
 from math import inf
 from heapq import heappush, heappop
-from .vertex import Vertex
+from .tool import Tool
 
 
 class Graph:
@@ -25,7 +25,7 @@ class Graph:
         directed (bool): A flag indicating whether the graph is directed or undirected.
     """
 
-    def __init__(self, directed=False):
+    def __init__(self):
         """
         Initialize the graph.
 
@@ -33,7 +33,6 @@ class Graph:
             directed (bool): If True, the graph is directed. Defaults to False.
         """
         self.graph_dict = {}
-        self.directed = directed
 
     def add_tool(self, tool):
         """
@@ -42,10 +41,10 @@ class Graph:
         Args:
             tool (Vertex): The tool to be added to the graph.
         """
-        if isinstance(tool, Vertex):
-            self.graph_dict[tool.value] = tool
+        if isinstance(tool, Tool):
+            self.graph_dict[tool.name] = tool
         else:
-            raise TypeError("Expected a Vertex instance.")
+            raise TypeError("Expected a Tool instance.")
 
     def add_neighbor(self, from_tool, to_tool, weight=0):
         """
@@ -56,7 +55,7 @@ class Graph:
             to_tool (Vertex): The tool to which the edge points.
             weight (float): The weight of the edge. Defaults to 0.
         """
-        self.graph_dict[from_tool.value].add_edge(to_tool.value, weight)
+        self.graph_dict[from_tool.name].add_edge(to_tool.name)
         if not self.directed:
             self.graph_dict[to_tool.value].add_edge(from_tool.value, weight)
 
