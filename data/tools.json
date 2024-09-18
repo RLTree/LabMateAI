@@ -1,0 +1,1018 @@
+[
+    {
+      "name": "FastQC",
+      "category": "Genomics",
+      "features": ["Quality Control", "Sequencing", "Data Analysis"],
+      "cost": "Free",
+      "description": "A quality control tool for high throughput sequence data.",
+      "url": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/"
+    },
+    {
+      "name": "BLAST",
+      "category": "Bioinformatics",
+      "features": ["Sequence Alignment", "DNA", "Protein"],
+      "cost": "Free",
+      "description": "Basic Local Alignment Search Tool for comparing nucleotide or protein sequences.",
+      "url": "https://blast.ncbi.nlm.nih.gov/Blast.cgi"
+    },
+    {
+      "name": "HISAT2",
+      "category": "Genomics",
+      "features": ["RNA-Seq", "Alignment", "Transcriptomics"],
+      "cost": "Free",
+      "description": "A fast and sensitive alignment program for mapping RNA-seq reads.",
+      "url": "https://ccb.jhu.edu/software/hisat2/"
+    },
+    {
+      "name": "Cytoscape",
+      "category": "Network Analysis",
+      "features": ["Data Visualization", "Network Analysis", "Graphs"],
+      "cost": "Free",
+      "description": "An open-source platform for complex network analysis and visualization.",
+      "url": "https://cytoscape.org/"
+    },
+    {
+      "name": "FlowJo",
+      "category": "Flow Cytometry",
+      "features": ["Flow Cytometry", "Data Analysis", "Cell Sorting"],
+      "cost": "Paid",
+      "description": "A software application with an integrated environment for viewing and analyzing flow cytometric data.",
+      "url": "https://www.flowjo.com/"
+    },
+    {
+      "name": "ImageJ",
+      "category": "Image Analysis",
+      "features": ["Image Processing", "Microscopy", "Quantification"],
+      "cost": "Free",
+      "description": "An open-source image processing program designed for scientific multidimensional images.",
+      "url": "https://imagej.nih.gov/ij/"
+    },
+    {
+      "name": "MATLAB",
+      "category": "Data Analysis",
+      "features": ["Mathematical Modeling", "Data Visualization", "Simulation"],
+      "cost": "Paid",
+      "description": "A programming and numeric computing platform used by engineers and scientists.",
+      "url": "https://www.mathworks.com/products/matlab.html"
+    },
+    {
+      "name": "GraphPad Prism",
+      "category": "Statistics",
+      "features": ["Data Analysis", "Graphing", "Biostatistics"],
+      "cost": "Paid",
+      "description": "A software program combining scientific graphing, comprehensive curve fitting, and data organization.",
+      "url": "https://www.graphpad.com/scientific-software/prism/"
+    },
+    {
+      "name": "RStudio",
+      "category": "Data Analysis",
+      "features": ["Statistical Computing", "Data Visualization", "Programming"],
+      "cost": "Free",
+      "description": "An integrated development environment for R, a programming language for statistical computing and graphics.",
+      "url": "https://www.rstudio.com/"
+    },
+    {
+      "name": "GSEA",
+      "category": "Genomics",
+      "features": ["Gene Set Enrichment", "Transcriptomics", "Data Analysis"],
+      "cost": "Free",
+      "description": "A computational method that determines whether an a priori defined set of genes shows statistically significant differences.",
+      "url": "https://www.gsea-msigdb.org/gsea/index.jsp"
+    },
+    {
+      "name": "Galaxy",
+      "category": "Bioinformatics",
+      "features": ["Data Analysis", "Workflows", "Genome Assembly"],
+      "cost": "Free",
+      "description": "An open, web-based platform for accessible, reproducible, and transparent computational biomedical research.",
+      "url": "https://usegalaxy.org/"
+    },
+    {
+      "name": "CellProfiler",
+      "category": "Image Analysis",
+      "features": ["Cell Imaging", "Quantification", "Microscopy"],
+      "cost": "Free",
+      "description": "An open-source software for measuring and analyzing cell images.",
+      "url": "https://cellprofiler.org/"
+    },
+    {
+      "name": "SPSS",
+      "category": "Statistics",
+      "features": ["Data Analysis", "Statistics", "Biostatistics"],
+      "cost": "Paid",
+      "description": "A powerful statistical software platform used for advanced statistical analysis.",
+      "url": "https://www.ibm.com/products/spss-statistics"
+    },
+    {
+      "name": "MaxQuant",
+      "category": "Proteomics",
+      "features": ["Protein Quantification", "Mass Spectrometry", "Data Analysis"],
+      "cost": "Free",
+      "description": "A quantitative proteomics software package designed for analyzing large mass spectrometric data.",
+      "url": "https://www.maxquant.org/"
+    },
+    {
+      "name": "OpenMS",
+      "category": "Proteomics",
+      "features": ["Data Analysis", "Mass Spectrometry", "Protein Identification"],
+      "cost": "Free",
+      "description": "An open-source software C++ library for LC-MS data management and analyses.",
+      "url": "https://www.openms.de/"
+    },
+    {
+      "name": "Qlucore Omics Explorer",
+      "category": "Genomics",
+      "features": ["Data Analysis", "Visualization", "Genomics"],
+      "cost": "Paid",
+      "description": "Software for advanced data analysis and visualization in life science research.",
+      "url": "https://qlucore.com/"
+    },
+    {
+      "name": "QIIME 2",
+      "category": "Microbiomics",
+      "features": ["Data Analysis", "Microbiome", "Sequencing"],
+      "cost": "Free",
+      "description": "A next-generation microbiome bioinformatics platform that is extensible, free, and open source.",
+      "url": "https://qiime2.org/"
+    },
+    {
+      "name": "SRA Toolkit",
+      "category": "Genomics",
+      "features": ["Sequence Retrieval", "Data Analysis", "Sequencing"],
+      "cost": "Free",
+      "description": "A collection of tools and libraries for retrieving and formatting DNA sequence data.",
+      "url": "https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/"
+    },
+    {
+      "name": "Seurat",
+      "category": "Single-Cell Analysis",
+      "features": ["Data Analysis", "Single Cell", "Transcriptomics"],
+      "cost": "Free",
+      "description": "An R toolkit for single-cell genomics, designed to explore cellular heterogeneity.",
+      "url": "https://satijalab.org/seurat/"
+    },
+    {
+      "name": "TissueGnostics",
+      "category": "Image Analysis",
+      "features": ["Tissue Imaging", "Microscopy", "Quantification"],
+      "cost": "Paid",
+      "description": "Provides solutions for automated tissue image analysis.",
+      "url": "https://www.tissuegnostics.com/"
+    },
+    {
+      "name": "AutoDock",
+      "category": "Molecular Modeling",
+      "features": ["Molecular Docking", "Protein-Ligand", "Drug Discovery"],
+      "cost": "Free",
+      "description": "A suite of automated docking tools designed to predict how small molecules bind to a receptor of known 3D structure.",
+      "url": "http://autodock.scripps.edu/"
+    },
+    {
+      "name": "PyMOL",
+      "category": "Structural Biology",
+      "features": ["3D Visualization", "Molecular Modeling", "Structural Analysis"],
+      "cost": "Paid",
+      "description": "A molecular visualization system with an open-source foundation, producing high-quality 3D images.",
+      "url": "https://pymol.org/2/"
+    },
+    {
+      "name": "DeepLabCut",
+      "category": "Neuroscience",
+      "features": ["Pose Estimation", "Behavioral Analysis", "Machine Learning"],
+      "cost": "Free",
+      "description": "An open-source toolbox for markerless pose estimation of animals using deep learning.",
+      "url": "http://www.mackenziemathislab.org/deeplabcut"
+    },
+    {
+      "name": "Igor Pro",
+      "category": "Data Analysis",
+      "features": ["Data Visualization", "Analysis", "Graphing"],
+      "cost": "Paid",
+      "description": "A software environment for experimentation with scientific and engineering data.",
+      "url": "https://www.wavemetrics.com/products/igorpro"
+    },
+    {
+        "name": "Bioconductor",
+        "category": "Bioinformatics",
+        "features": ["Data Analysis", "Genomics", "R Packages"],
+        "cost": "Free",
+        "description": "An open-source project providing tools for the analysis and comprehension of high-throughput genomic data.",
+        "url": "https://www.bioconductor.org/"
+    },
+      {
+        "name": "Bowtie",
+        "category": "Genomics",
+        "features": ["Sequence Alignment", "High-Throughput", "Genome Mapping"],
+        "cost": "Free",
+        "description": "An ultrafast, memory-efficient short read aligner for aligning sequencing reads to long reference sequences.",
+        "url": "http://bowtie-bio.sourceforge.net/index.shtml"
+      },
+      {
+        "name": "Cufflinks",
+        "category": "Genomics",
+        "features": ["Transcript Assembly", "RNA-Seq", "Differential Expression"],
+        "cost": "Free",
+        "description": "A program for transcriptome assembly and differential expression analysis of RNA-Seq data.",
+        "url": "http://cole-trapnell-lab.github.io/cufflinks/"
+      },
+      {
+        "name": "DESeq2",
+        "category": "Genomics",
+        "features": ["Differential Expression", "RNA-Seq", "Transcriptomics"],
+        "cost": "Free",
+        "description": "An R package to analyze count data from RNA-Seq experiments and test for differential expression.",
+        "url": "https://bioconductor.org/packages/release/bioc/html/DESeq2.html"
+      },
+      {
+        "name": "IGV (Integrative Genomics Viewer)",
+        "category": "Genomics",
+        "features": ["Genome Browsing", "Data Visualization", "Variant Analysis"],
+        "cost": "Free",
+        "description": "A high-performance visualization tool for interactive exploration of large, integrated genomic datasets.",
+        "url": "http://software.broadinstitute.org/software/igv/"
+      },
+      {
+        "name": "MAFFT",
+        "category": "Bioinformatics",
+        "features": ["Multiple Sequence Alignment", "Phylogenetics", "Protein Analysis"],
+        "cost": "Free",
+        "description": "A multiple sequence alignment program for amino acid or nucleotide sequences.",
+        "url": "https://mafft.cbrc.jp/alignment/software/"
+      },
+      {
+        "name": "MEGA",
+        "category": "Evolutionary Biology",
+        "features": ["Phylogenetics", "Molecular Evolution", "Data Analysis"],
+        "cost": "Free",
+        "description": "Molecular Evolutionary Genetics Analysis software for comparative analysis of homologous sequences.",
+        "url": "https://www.megasoftware.net/"
+      },
+      {
+        "name": "Mothur",
+        "category": "Microbiomics",
+        "features": ["Microbiome Analysis", "16S rRNA", "Community Analysis"],
+        "cost": "Free",
+        "description": "An open-source software package that enables processing of 16S rRNA gene sequences.",
+        "url": "https://mothur.org/"
+      },
+      {
+        "name": "NanoPlot",
+        "category": "Genomics",
+        "features": ["Data Visualization", "Nanopore Sequencing", "Quality Control"],
+        "cost": "Free",
+        "description": "A plotting tool for Oxford Nanopore sequencing data and associated QC files.",
+        "url": "https://github.com/wdecoster/NanoPlot"
+      },
+      {
+        "name": "PLINK",
+        "category": "Genomics",
+        "features": ["Genetic Association", "Data Analysis", "GWAS"],
+        "cost": "Free",
+        "description": "A whole-genome association analysis toolset, designed to perform a range of basic, large-scale analyses in a computationally efficient manner.",
+        "url": "https://www.cog-genomics.org/plink/"
+      },
+      {
+        "name": "Proteome Discoverer",
+        "category": "Proteomics",
+        "features": ["Mass Spectrometry", "Protein Identification", "Data Analysis"],
+        "cost": "Paid",
+        "description": "A comprehensive software suite for analyzing qualitative and quantitative proteomics data.",
+        "url": "https://www.thermofisher.com/order/catalog/product/IQLAAEGABSFADBMBQB"
+      },
+      {
+        "name": "PyTorch",
+        "category": "Machine Learning",
+        "features": ["Deep Learning", "Neural Networks", "AI"],
+        "cost": "Free",
+        "description": "An open-source machine learning library based on the Torch library, used for applications such as computer vision and natural language processing.",
+        "url": "https://pytorch.org/"
+      },
+      {
+        "name": "QIAGEN CLC Genomics Workbench",
+        "category": "Genomics",
+        "features": ["Data Analysis", "Bioinformatics", "Sequencing"],
+        "cost": "Paid",
+        "description": "A software suite for analyzing, visualizing, and interpreting omics data.",
+        "url": "https://digitalinsights.qiagen.com/products-overview/discovery-insights-portfolio/qiagen-clc-genomics-workbench/"
+      },
+      {
+        "name": "Samtools",
+        "category": "Genomics",
+        "features": ["Sequence Alignment", "Variant Calling", "Data Analysis"],
+        "cost": "Free",
+        "description": "A suite of programs for interacting with high-throughput sequencing data, providing various utilities for manipulating alignments in the SAM format.",
+        "url": "http://www.htslib.org/"
+      },
+      {
+        "name": "Scikit-learn",
+        "category": "Machine Learning",
+        "features": ["Data Analysis", "Machine Learning", "Data Mining"],
+        "cost": "Free",
+        "description": "A Python module for machine learning built on SciPy, providing simple and efficient tools for data mining and data analysis.",
+        "url": "https://scikit-learn.org/"
+      },
+      {
+        "name": "StringTie",
+        "category": "Genomics",
+        "features": ["RNA-Seq", "Transcript Assembly", "Expression Analysis"],
+        "cost": "Free",
+        "description": "A fast and highly efficient assembler of RNA-Seq alignments into potential transcripts.",
+        "url": "http://ccb.jhu.edu/software/stringtie/"
+      },
+      {
+        "name": "TopHat",
+        "category": "Genomics",
+        "features": ["RNA-Seq", "Splice Junction Mapping", "Transcriptomics"],
+        "cost": "Free",
+        "description": "A fast splice junction mapper for RNA-Seq reads that aligns RNA-Seq reads to mammalian-sized genomes.",
+        "url": "https://ccb.jhu.edu/software/tophat/index.shtml"
+      },
+      {
+        "name": "Trimmomatic",
+        "category": "Genomics",
+        "features": ["Quality Control", "Sequence Trimming", "Sequencing"],
+        "cost": "Free",
+        "description": "A flexible read trimming tool for Illumina NGS data to remove adapters and low-quality bases.",
+        "url": "http://www.usadellab.org/cms/?page=trimmomatic"
+      },
+      {
+        "name": "VELVET",
+        "category": "Genomics",
+        "features": ["Genome Assembly", "De Novo Assembly", "Sequence Alignment"],
+        "cost": "Free",
+        "description": "A set of algorithms optimized for short read sequencing data to assemble genomes.",
+        "url": "https://www.ebi.ac.uk/~zerbino/velvet/"
+      },
+      {
+        "name": "WaveSurfer",
+        "category": "Neuroscience",
+        "features": ["Electrophysiology", "Data Analysis", "Visualization"],
+        "cost": "Free",
+        "description": "A MATLAB software package for electrophysiological data acquisition and analysis.",
+        "url": "https://wavesurfer.janelia.org/"
+      },
+      {
+        "name": "WebGestalt",
+        "category": "Bioinformatics",
+        "features": ["Gene Set Analysis", "Functional Analysis", "Pathway Analysis"],
+        "cost": "Free",
+        "description": "A functional enrichment analysis web tool, providing a way to identify biological functions related to a given gene list.",
+        "url": "http://www.webgestalt.org/"
+      },
+      {
+        "name": "WEKA",
+        "category": "Machine Learning",
+        "features": ["Data Mining", "Machine Learning", "Data Analysis"],
+        "cost": "Free",
+        "description": "A collection of machine learning algorithms for data mining tasks, featuring tools for data pre-processing, classification, regression, clustering, and more.",
+        "url": "https://www.cs.waikato.ac.nz/ml/weka/"
+      },
+      {
+        "name": "XCMS",
+        "category": "Metabolomics",
+        "features": ["Data Analysis", "Metabolomics", "LC-MS"],
+        "cost": "Free",
+        "description": "A software platform for the analysis of LC/MS data including raw data processing and feature detection.",
+        "url": "https://bioconductor.org/packages/release/bioc/html/xcms.html"
+      },
+      {
+        "name": "Zenodo",
+        "category": "Data Management",
+        "features": ["Data Archiving", "Research Data", "Open Science"],
+        "cost": "Free",
+        "description": "An open-access repository that enables researchers to share and preserve research outputs in any size, any format, and from any field of science.",
+        "url": "https://zenodo.org/"
+      },
+      {
+        "name": "Zotero",
+        "category": "Reference Management",
+        "features": ["Citation Management", "Bibliography", "Research Organization"],
+        "cost": "Free",
+        "description": "A free, easy-to-use tool to help you collect, organize, cite, and share research.",
+        "url": "https://www.zotero.org/"
+      },
+      {
+        "name": "BioGRID",
+        "category": "Bioinformatics",
+        "features": ["Protein Interactions", "Genetic Interactions", "Data Repository"],
+        "cost": "Free",
+        "description": "A curated database of protein and genetic interactions.",
+        "url": "https://thebiogrid.org/"
+      },
+      {
+        "name": "Bowtie 2",
+        "category": "Genomics",
+        "features": ["Sequence Alignment", "Genome Mapping", "High-Throughput"],
+        "cost": "Free",
+        "description": "An ultrafast and memory-efficient tool for aligning sequencing reads to long reference sequences.",
+        "url": "http://bowtie-bio.sourceforge.net/bowtie2/index.shtml"
+      },
+      {
+        "name": "BWA",
+        "category": "Genomics",
+        "features": ["Sequence Alignment", "Genome Mapping", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A software package for mapping low-divergent sequences against a large reference genome.",
+        "url": "http://bio-bwa.sourceforge.net/"
+      },
+      {
+        "name": "CLUMPP",
+        "category": "Population Genetics",
+        "features": ["Clustering", "Data Analysis", "Genetic Structure"],
+        "cost": "Free",
+        "description": "A program that helps identify the optimal alignment of multiple population structure analyses.",
+        "url": "https://rosenberglab.stanford.edu/clumpp.html"
+      },
+      {
+        "name": "Circos",
+        "category": "Data Visualization",
+        "features": ["Genomic Data", "Circular Visualization", "Data Analysis"],
+        "cost": "Free",
+        "description": "A software package for visualizing data and information in a circular layout.",
+        "url": "http://circos.ca/"
+      },
+      {
+        "name": "COBRA Toolbox",
+        "category": "Metabolic Engineering",
+        "features": ["Metabolic Modeling", "Systems Biology", "Data Analysis"],
+        "cost": "Free",
+        "description": "A MATLAB toolbox for constraint-based reconstruction and analysis of genome-scale metabolic models.",
+        "url": "https://opencobra.github.io/cobratoolbox/stable/"
+      },
+      {
+        "name": "CONCOCT",
+        "category": "Metagenomics",
+        "features": ["Clustering", "Data Analysis", "Binning"],
+        "cost": "Free",
+        "description": "A program for unsupervised binning of metagenomic contigs by clustering nucleotide composition and coverage.",
+        "url": "https://concoct.readthedocs.io/en/latest/"
+      },
+      {
+        "name": "CONSEL",
+        "category": "Phylogenetics",
+        "features": ["Hypothesis Testing", "Phylogenetic Analysis", "Data Analysis"],
+        "cost": "Free",
+        "description": "A program for assessing the confidence of phylogenetic tree selection.",
+        "url": "http://stat.sys.i.kyoto-u.ac.jp/prog/consel/"
+      },
+      {
+        "name": "CUT&RUNTools",
+        "category": "Epigenetics",
+        "features": ["Chromatin Profiling", "Data Analysis", "Epigenomics"],
+        "cost": "Free",
+        "description": "A pipeline for analyzing CUT&RUN sequencing data for profiling chromatin.",
+        "url": "https://github.com/fl-yu/CUT-RUNTools-2.0"
+      },
+      {
+        "name": "DEAP",
+        "category": "Evolutionary Computing",
+        "features": ["Genetic Algorithms", "Data Analysis", "Optimization"],
+        "cost": "Free",
+        "description": "A novel evolutionary computation framework for rapid prototyping and testing of ideas.",
+        "url": "https://deap.readthedocs.io/en/master/"
+      },
+      {
+        "name": "DIAMOND",
+        "category": "Bioinformatics",
+        "features": ["Sequence Alignment", "Protein Search", "Metagenomics"],
+        "cost": "Free",
+        "description": "An ultra-fast protein alignment tool for large-scale metagenomic protein searches.",
+        "url": "https://github.com/bbuchfink/diamond"
+      },
+      {
+        "name": "DOGMA",
+        "category": "Genomics",
+        "features": ["Genome Annotation", "Mitochondrial Genome", "Data Analysis"],
+        "cost": "Free",
+        "description": "A web-based program for annotating mitochondrial and chloroplast genome sequences.",
+        "url": "http://dogma.ccbb.utexas.edu/"
+      },
+      {
+        "name": "Edgar",
+        "category": "Metagenomics",
+        "features": ["Comparative Genomics", "Ortholog Analysis", "Phylogenetics"],
+        "cost": "Free",
+        "description": "A platform for the comparative analysis of genomes with a focus on ortholog identification.",
+        "url": "http://edgar.computational.bio/"
+      },
+      {
+        "name": "EDGE Bioinformatics",
+        "category": "Genomics",
+        "features": ["Data Analysis", "Sequence Analysis", "Bioinformatics"],
+        "cost": "Free",
+        "description": "An open-source, user-friendly bioinformatics platform for various genomics and metagenomics analyses.",
+        "url": "https://bioinformatics.igs.umaryland.edu/edge/"
+      },
+      {
+        "name": "EIGENSOFT",
+        "category": "Population Genetics",
+        "features": ["Principal Component Analysis", "Population Structure", "Genetic Data"],
+        "cost": "Free",
+        "description": "A suite of programs for population genetics analyses using principal component analysis.",
+        "url": "https://github.com/DReichLab/EIG"
+      },
+      {
+        "name": "EMBOSS",
+        "category": "Bioinformatics",
+        "features": ["Sequence Analysis", "Data Analysis", "Molecular Biology"],
+        "cost": "Free",
+        "description": "A bioinformatics software package for the analysis of sequence data.",
+        "url": "http://emboss.open-bio.org/"
+      },
+      {
+        "name": "ENCoRE",
+        "category": "Epigenetics",
+        "features": ["ChIP-Seq Analysis", "Data Analysis", "Epigenomics"],
+        "cost": "Free",
+        "description": "A computational tool for analyzing enhancer RNAs using ChIP-Seq data.",
+        "url": "https://sourceforge.net/projects/encore-r/"
+      },
+      {
+        "name": "EPIC",
+        "category": "Bioinformatics",
+        "features": ["Chromatin Analysis", "Peak Calling", "Epigenomics"],
+        "cost": "Free",
+        "description": "An algorithm for analyzing ChIP-seq data to identify regions of transcription factor binding.",
+        "url": "https://github.com/biocore-ntnu/epic"
+      },
+      {
+        "name": "Escher",
+        "category": "Metabolic Engineering",
+        "features": ["Data Visualization", "Metabolic Maps", "Systems Biology"],
+        "cost": "Free",
+        "description": "A web-based visualization tool for genome-scale metabolic maps.",
+        "url": "https://escher.github.io/"
+      },
+      {
+        "name": "FASTX-Toolkit",
+        "category": "Genomics",
+        "features": ["Sequence Preprocessing", "Data Analysis", "Next-Gen Sequencing"],
+        "cost": "Free",
+        "description": "A collection of command line tools for preprocessing short read sequences in FASTA/FASTQ format.",
+        "url": "http://hannonlab.cshl.edu/fastx_toolkit/"
+      },
+      {
+        "name": "FELLA",
+        "category": "Metabolomics",
+        "features": ["Pathway Analysis", "Data Analysis", "Metabolic Networks"],
+        "cost": "Free",
+        "description": "An R package for enriched pathway analysis in metabolomics.",
+        "url": "https://bioconductor.org/packages/release/bioc/html/FELLA.html"
+      },
+      {
+        "name": "Fiji",
+        "category": "Image Analysis",
+        "features": ["Image Processing", "Microscopy", "Data Analysis"],
+        "cost": "Free",
+        "description": "A distribution of ImageJ focused on biological image analysis.",
+        "url": "https://fiji.sc/"
+      },
+      {
+        "name": "FLUXCAPACITOR",
+        "category": "Genomics",
+        "features": ["RNA-Seq", "Transcriptomics", "Expression Analysis"],
+        "cost": "Free",
+        "description": "A software for quantifying the abundance of alternatively spliced isoforms in RNA-Seq data.",
+        "url": "http://fluxcapacitor.sf.net/"
+      },
+      {
+        "name": "GATK (Genome Analysis Toolkit)",
+        "category": "Genomics",
+        "features": ["Variant Discovery", "Genotyping", "Data Analysis"],
+        "cost": "Free",
+        "description": "A toolkit for variant discovery in high-throughput sequencing data.",
+        "url": "https://gatk.broadinstitute.org/"
+      },
+      {
+        "name": "GeneMANIA",
+        "category": "Network Analysis",
+        "features": ["Gene Function", "Gene Networks", "Data Analysis"],
+        "cost": "Free",
+        "description": "A web-based tool for predicting the function of genes and gene sets using functional interaction networks.",
+        "url": "http://genemania.org/"
+      },
+      {
+        "name": "Geneious",
+        "category": "Bioinformatics",
+        "features": ["Sequence Analysis", "Molecular Biology", "Data Visualization"],
+        "cost": "Paid",
+        "description": "A software platform for the organization and analysis of molecular biology data.",
+        "url": "https://www.geneious.com/"
+      },
+      {
+        "name": "GEMMA",
+        "category": "Population Genetics",
+        "features": ["Genome-Wide Association", "Mixed Models", "Data Analysis"],
+        "cost": "Free",
+        "description": "A software tool for genome-wide association analysis using a linear mixed model.",
+        "url": "https://github.com/genetics-statistics/GEMMA"
+      },
+      {
+        "name": "GEO2R",
+        "category": "Genomics",
+        "features": ["Gene Expression Analysis", "Microarray", "Data Analysis"],
+        "cost": "Free",
+        "description": "An online tool for comparing groups of samples in a GEO Series to identify differentially expressed genes.",
+        "url": "https://www.ncbi.nlm.nih.gov/geo/geo2r/"
+      },
+      {
+        "name": "GROMACS",
+        "category": "Molecular Dynamics",
+        "features": ["Molecular Simulation", "Protein Dynamics", "Data Analysis"],
+        "cost": "Free",
+        "description": "A versatile package to perform molecular dynamics, i.e., simulate the Newtonian equations of motion for systems with hundreds to millions of particles.",
+        "url": "http://www.gromacs.org/"
+      },
+      {
+        "name": "GSEApy",
+        "category": "Genomics",
+        "features": ["Gene Set Enrichment", "Transcriptomics", "Data Analysis"],
+        "cost": "Free",
+        "description": "A Python package for gene set enrichment analysis.",
+        "url": "https://gseapy.readthedocs.io/en/latest/"
+      },
+      {
+        "name": "HTSeq",
+        "category": "Genomics",
+        "features": ["RNA-Seq", "Data Analysis", "Transcriptomics"],
+        "cost": "Free",
+        "description": "A Python package for processing and analyzing high-throughput sequencing data.",
+        "url": "https://htseq.readthedocs.io/en/release_0.11.1/"
+      },
+      {
+        "name": "ImageJ",
+        "category": "Image Analysis",
+        "features": ["Image Processing", "Microscopy", "Quantification"],
+        "cost": "Free",
+        "description": "An open-source image processing program designed for scientific multidimensional images.",
+        "url": "https://imagej.nih.gov/ij/"
+      },
+      {
+        "name": "Infernal",
+        "category": "Genomics",
+        "features": ["RNA Alignment", "Data Analysis", "Genome Annotation"],
+        "cost": "Free",
+        "description": "A software package for RNA homology search and alignment using covariance models.",
+        "url": "http://eddylab.org/infernal/"
+      },
+      {
+        "name": "I-TASSER",
+        "category": "Structural Biology",
+        "features": ["Protein Structure Prediction", "Molecular Modeling", "Data Analysis"],
+        "cost": "Free",
+        "description": "A software suite for automated protein structure and function prediction.",
+        "url": "https://zhanglab.ccmb.med.umich.edu/I-TASSER/"
+      },
+      {
+        "name": "Jalview",
+        "category": "Bioinformatics",
+        "features": ["Multiple Sequence Alignment", "Data Visualization", "Phylogenetics"],
+        "cost": "Free",
+        "description": "A free program for multiple sequence alignment editing, visualization, and analysis.",
+        "url": "https://www.jalview.org/"
+      },
+      {
+        "name": "Kaiju",
+        "category": "Metagenomics",
+        "features": ["Taxonomic Classification", "Metagenomic Data", "Sequence Analysis"],
+        "cost": "Free",
+        "description": "A program for taxonomic classification of high-throughput metagenomic sequencing reads.",
+        "url": "https://kaiju.binf.ku.dk/"
+      },
+      {
+        "name": "KBase",
+        "category": "Bioinformatics",
+        "features": ["Data Analysis", "Collaborative Research", "Systems Biology"],
+        "cost": "Free",
+        "description": "An open-source software and data science platform designed for collaborative, systems biology research.",
+        "url": "https://kbase.us/"
+      },
+      {
+        "name": "Kraken",
+        "category": "Metagenomics",
+        "features": ["Taxonomic Classification", "Metagenomic Data", "Sequence Analysis"],
+        "cost": "Free",
+        "description": "An ultrafast and highly accurate program for assigning taxonomic labels to metagenomic DNA sequences.",
+        "url": "https://ccb.jhu.edu/software/kraken/"
+      },
+      {
+        "name": "Liftover",
+        "category": "Genomics",
+        "features": ["Genome Mapping", "Data Conversion", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A tool for converting coordinates between different genome assemblies.",
+        "url": "https://genome.ucsc.edu/cgi-bin/hgLiftOver"
+      },
+      {
+        "name": "MAnorm",
+        "category": "Epigenomics",
+        "features": ["ChIP-Seq Analysis", "Differential Analysis", "Peak Calling"],
+        "cost": "Free",
+        "description": "A normalization and comparison tool for ChIP-seq datasets.",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3577362/"
+      },
+      {
+        "name": "MAUVE",
+        "category": "Genomics",
+        "features": ["Genome Alignment", "Phylogenetics", "Comparative Genomics"],
+        "cost": "Free",
+        "description": "A software tool for the alignment of conserved genomic sequences and the discovery of rearrangements.",
+        "url": "http://darlinglab.org/mauve/mauve.html"
+      },
+      {
+        "name": "MISO",
+        "category": "Genomics",
+        "features": ["RNA Splicing", "Alternative Splicing", "RNA-Seq"],
+        "cost": "Free",
+        "description": "A probabilistic framework for RNA-Seq analysis and quantification of alternative splicing events.",
+        "url": "https://miso.readthedocs.io/en/fastmiso/"
+      },
+      {
+        "name": "Molecular Operating Environment (MOE)",
+        "category": "Molecular Modeling",
+        "features": ["Drug Discovery", "Molecular Dynamics", "Structure-Based Design"],
+        "cost": "Paid",
+        "description": "A comprehensive suite of tools for molecular modeling, simulation, and drug discovery.",
+        "url": "https://www.chemcomp.com/MOE-Molecular_Operating_Environment.htm"
+      },
+      {
+        "name": "Mothur",
+        "category": "Microbiomics",
+        "features": ["Microbiome Analysis", "16S rRNA", "Community Analysis"],
+        "cost": "Free",
+        "description": "An open-source software package that enables processing of 16S rRNA gene sequences.",
+        "url": "https://mothur.org/"
+      },
+      {
+        "name": "MultiQC",
+        "category": "Genomics",
+        "features": ["Quality Control", "Data Visualization", "Next-Gen Sequencing"],
+        "cost": "Free",
+        "description": "A tool to aggregate bioinformatics results across many samples into a single report.",
+        "url": "https://multiqc.info/"
+      },
+      {
+        "name": "NanoMod",
+        "category": "Genomics",
+        "features": ["Nanopore Sequencing", "Data Analysis", "Modification Detection"],
+        "cost": "Free",
+        "description": "A computational tool for identifying DNA modifications in nanopore sequencing data.",
+        "url": "https://nanomod.sourceforge.net/"
+      },
+      {
+        "name": "ncRNA-Predict",
+        "category": "Genomics",
+        "features": ["Non-Coding RNA", "Genome Annotation", "Sequence Analysis"],
+        "cost": "Free",
+        "description": "A tool for predicting non-coding RNA genes in genomic sequences.",
+        "url": "https://github.com/bioinfo-core/ncRNA-Predict"
+      },
+      {
+        "name": "ngs.plot",
+        "category": "Genomics",
+        "features": ["Data Visualization", "Next-Gen Sequencing", "Genomic Regions"],
+        "cost": "Free",
+        "description": "A tool for visualizing the enrichment of high-throughput sequencing signals.",
+        "url": "https://github.com/shenlab-sinai/ngsplot"
+      },
+      {
+        "name": "Nextstrain",
+        "category": "Genomics",
+        "features": ["Genomic Epidemiology", "Data Visualization", "Pathogen Genomics"],
+        "cost": "Free",
+        "description": "An open-source project to harness the scientific and public health potential of pathogen genome data.",
+        "url": "https://nextstrain.org/"
+      },
+      {
+        "name": "OncoPrint",
+        "category": "Cancer Genomics",
+        "features": ["Data Visualization", "Genomic Alterations", "Mutation Analysis"],
+        "cost": "Free",
+        "description": "A tool for visualizing multiple genomic alterations in cancer research.",
+        "url": "https://www.cbioportal.org/oncoprinter"
+      },
+      {
+        "name": "Partek Flow",
+        "category": "Genomics",
+        "features": ["Data Analysis", "Next-Gen Sequencing", "Bioinformatics"],
+        "cost": "Paid",
+        "description": "A genomics analysis software designed to analyze next-generation sequencing data.",
+        "url": "https://www.partek.com/partek-flow/"
+      },
+      {
+        "name": "Picard",
+        "category": "Genomics",
+        "features": ["Sequence Alignment", "Data Analysis", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A set of command line tools for manipulating high-throughput sequencing (HTS) data and formats.",
+        "url": "http://broadinstitute.github.io/picard/"
+      },
+      {
+        "name": "Plink2",
+        "category": "Population Genetics",
+        "features": ["Data Analysis", "Genome-Wide Association", "Genetic Data"],
+        "cost": "Free",
+        "description": "A toolset for whole-genome association and population-based linkage analyses.",
+        "url": "https://www.cog-genomics.org/plink/2.0/"
+      },
+      {
+        "name": "Prokka",
+        "category": "Genomics",
+        "features": ["Genome Annotation", "Prokaryotic Genomes", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A software tool for the rapid annotation of prokaryotic genomes.",
+        "url": "https://github.com/tseemann/prokka"
+      },
+      {
+        "name": "PyRx",
+        "category": "Molecular Modeling",
+        "features": ["Virtual Screening", "Molecular Docking", "Drug Discovery"],
+        "cost": "Free",
+        "description": "A Virtual Screening software for Computational Drug Discovery that can be used to screen libraries of compounds against potential drug targets.",
+        "url": "https://pyrx.sourceforge.io/"
+      },
+      {
+        "name": "QIIME 2",
+        "category": "Microbiomics",
+        "features": ["Microbiome Analysis", "16S rRNA", "Community Analysis"],
+        "cost": "Free",
+        "description": "An open-source bioinformatics pipeline for performing microbiome analysis from raw DNA sequencing data.",
+        "url": "https://qiime2.org/"
+      },
+      {
+        "name": "Raven",
+        "category": "Metabolic Engineering",
+        "features": ["Metabolic Modeling", "Data Analysis", "Systems Biology"],
+        "cost": "Free",
+        "description": "A MATLAB toolbox for generating genome-scale metabolic models.",
+        "url": "https://sysbiochalmers.github.io/RAVEN/"
+      },
+      {
+        "name": "RSEM",
+        "category": "Genomics",
+        "features": ["RNA-Seq", "Expression Quantification", "Transcriptomics"],
+        "cost": "Free",
+        "description": "An RNA-Seq transcript quantification software that estimates gene and isoform expression levels.",
+        "url": "http://deweylab.biostat.wisc.edu/rsem/"
+      },
+      {
+        "name": "SAMtools",
+        "category": "Genomics",
+        "features": ["Sequence Alignment", "Data Analysis", "Variant Calling"],
+        "cost": "Free",
+        "description": "A suite of programs for interacting with high-throughput sequencing data.",
+        "url": "http://www.htslib.org/"
+      },
+      {
+        "name": "SANSparallel",
+        "category": "Protein Analysis",
+        "features": ["Protein Domain Analysis", "Bioinformatics", "Sequence Analysis"],
+        "cost": "Free",
+        "description": "A software package for detecting protein domains and comparing their sequences.",
+        "url": "https://github.com/Tsjerk/SANSparallel"
+      },
+      {
+        "name": "Seurat",
+        "category": "Single-Cell Analysis",
+        "features": ["Data Analysis", "Single Cell", "Transcriptomics"],
+        "cost": "Free",
+        "description": "An R toolkit for single-cell genomics, designed to explore cellular heterogeneity.",
+        "url": "https://satijalab.org/seurat/"
+      },
+      {
+        "name": "Shiny",
+        "category": "Data Visualization",
+        "features": ["Interactive Web Apps", "R Programming", "Data Analysis"],
+        "cost": "Free",
+        "description": "An R package that makes it easy to build interactive web apps straight from R.",
+        "url": "https://shiny.rstudio.com/"
+      },
+      {
+        "name": "SIFT",
+        "category": "Genomics",
+        "features": ["Variant Effect Prediction", "Protein Function", "Data Analysis"],
+        "cost": "Free",
+        "description": "A program that predicts whether an amino acid substitution affects protein function.",
+        "url": "https://sift.bii.a-star.edu.sg/"
+      },
+      {
+        "name": "SimBioNeT",
+        "category": "Bioinformatics",
+        "features": ["Data Analysis", "Metagenomics", "Pipeline"],
+        "cost": "Free",
+        "description": "A versatile bioinformatics pipeline for the analysis of microbiome and metagenomics data.",
+        "url": "https://sim-bio.net/"
+      },
+      {
+        "name": "SPAdes",
+        "category": "Genomics",
+        "features": ["Genome Assembly", "Metagenomics", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A genome assembler for single-cell and multi-cell bacterial datasets.",
+        "url": "https://cab.spbu.ru/software/spades/"
+      },
+      {
+        "name": "STRING",
+        "category": "Network Analysis",
+        "features": ["Protein Interaction Networks", "Bioinformatics", "Data Analysis"],
+        "cost": "Free",
+        "description": "A database of known and predicted protein-protein interactions.",
+        "url": "https://string-db.org/"
+      },
+      {
+        "name": "T-COFFEE",
+        "category": "Bioinformatics",
+        "features": ["Multiple Sequence Alignment", "Phylogenetics", "Data Analysis"],
+        "cost": "Free",
+        "description": "A software package for computing, evaluating, and manipulating multiple alignments of DNA, RNA, protein sequences, and structures.",
+        "url": "http://tcoffee.crg.cat/"
+      },
+      {
+        "name": "Taverna",
+        "category": "Bioinformatics",
+        "features": ["Workflow Management", "Data Analysis", "Automation"],
+        "cost": "Free",
+        "description": "An open-source suite of tools for designing and executing scientific workflows.",
+        "url": "https://taverna.incubator.apache.org/"
+      },
+      {
+        "name": "TreeView",
+        "category": "Data Visualization",
+        "features": ["Hierarchical Clustering", "Data Analysis", "Genomics"],
+        "cost": "Free",
+        "description": "A program that provides a way to visualize hierarchical clustering results.",
+        "url": "https://taxonomy.zoology.gla.ac.uk/rod/treeview.html"
+      },
+      {
+        "name": "Trinity",
+        "category": "Genomics",
+        "features": ["RNA-Seq", "De Novo Transcriptome Assembly", "Data Analysis"],
+        "cost": "Free",
+        "description": "A software package for de novo transcriptome assembly from RNA-Seq data.",
+        "url": "https://github.com/trinityrnaseq/trinityrnaseq"
+      },
+      {
+        "name": "UCSC Genome Browser",
+        "category": "Genomics",
+        "features": ["Genome Browsing", "Data Visualization", "Annotation"],
+        "cost": "Free",
+        "description": "An online platform for viewing the human genome and other genomes.",
+        "url": "https://genome.ucsc.edu/"
+      },
+      {
+        "name": "VCFtools",
+        "category": "Genomics",
+        "features": ["Variant Analysis", "Data Analysis", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A program package designed for working with VCF files, a format for storing genetic variation data.",
+        "url": "https://vcftools.github.io/"
+      },
+      {
+        "name": "VEGA",
+        "category": "Chemoinformatics",
+        "features": ["Molecular Modeling", "Data Analysis", "Drug Design"],
+        "cost": "Free",
+        "description": "A comprehensive suite of molecular modeling tools for the analysis of chemical and biological data.",
+        "url": "https://www.ddl.unimi.it/vega/"
+      },
+      {
+        "name": "VMD",
+        "category": "Molecular Visualization",
+        "features": ["3D Visualization", "Molecular Dynamics", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A tool for displaying, animating, and analyzing large biomolecular systems using 3D graphics and built-in scripting.",
+        "url": "https://www.ks.uiuc.edu/Research/vmd/"
+      },
+      {
+        "name": "WHAM",
+        "category": "Genomics",
+        "features": ["Variant Calling", "Structural Variants", "Bioinformatics"],
+        "cost": "Free",
+        "description": "A software tool for calling structural variants in whole-genome sequencing data.",
+        "url": "https://github.com/jason-weirather/wham"
+      },
+      {
+        "name": "X! Tandem",
+        "category": "Proteomics",
+        "features": ["Protein Identification", "Mass Spectrometry", "Data Analysis"],
+        "cost": "Free",
+        "description": "A program that matches tandem mass spectrometry data with protein sequences.",
+        "url": "https://www.thegpm.org/TANDEM/"
+      },
+      {
+        "name": "ZEN Intensity Analysis",
+        "category": "Image Analysis",
+        "features": ["Microscopy", "Quantification", "Data Analysis"],
+        "cost": "Paid",
+        "description": "A software tool for analyzing fluorescence intensity in microscopic images.",
+        "url": "https://www.zeiss.com/microscopy/us/products/microscope-software/zen-intensity-analysis.html"
+      },
+      {
+        "name": "ZetaHunter",
+        "category": "Metagenomics",
+        "features": ["Species Identification", "Data Analysis", "Fungal Metagenomics"],
+        "cost": "Free",
+        "description": "A tool for identifying the fungal species present in high-throughput metagenomic data.",
+        "url": "https://github.com/zygolife/zetahunter"
+      }
+]
