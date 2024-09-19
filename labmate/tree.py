@@ -1,124 +1,137 @@
+"""
+This module defines a tree structure to organize tools by categories.
+"""
+
+
 class TreeNode:
     """
     A class representing a node in a tree data structure.
 
-    Attributes
-    ----------
-    value : any
-        The value stored in the node.
-    children : list
-        A list of child nodes.
+    Attributes:
+        name (str): The name of the node.
+        tool (str): The tool associated with the node (optional).
+        children (list): A list of child nodes.
     """
 
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, name, tool=None):
+        self.name = name
+        self.tool = tool
         self.children = []
 
     def add_child(self, child_node):
         """
         Adds a child node to the current node.
-
-        Args:
-            child_node (TreeNode): The child node to be added.
         """
         self.children.append(child_node)
 
-    def __repr__(self):
-        return f'TreeNode({self.value})'
-
-    def __str__(self):
-        return f'TreeNode with value: {self.value} and children: {self.children}'
-
     def is_leaf(self):
         """
-        Checks if the node is a leaf node (i.e., has no children).
+        Check if the node is a leaf node.
 
         Returns:
-            bool: True if the node is a leaf, False otherwise.
+            bool: True if the node has no children, False otherwise.
         """
         return len(self.children) == 0
 
-    def depth(self):
-        """
-        Calculates the depth of the node in the tree.
 
-        Returns:
-            int: The depth of the node.
-        """
-        if not self.children:
-            return 0
-        return 1 + max(child.depth() for child in self.children)
+class ToolTree:
+    """
+    A class to represent the tree structure for organizing tools by categories.
+    """
 
-    def height(self):
-        """
-        Calculates the height of the node in the tree.
+    def __init__(self):
+        self.root = TreeNode("Root")
 
-        Returns:
-            int: The height of the node.
+    def build_tree(self, tools):
         """
-        if self.is_leaf():
-            return 0
-        return 1 + max(child.height() for child in self.children)
-
-    def find(self, value):
-        """
-        Searches for a node with the specified value in the tree.
+        Builds the tool tree from a list of tools.
 
         Args:
-            value: The value to search for.
+            tools (list): A list of tuples where each tuple contains (category, tool_name).
+        """
+        for tool in tools:
+            self.add_tool(tool)
+
+    def add_tool(self, tool):
+        """
+        Adds a tool to the tree under the specified category.
+
+        Args:
+            tool_name (str): The name of the tool to add.
+            category (str): The category under which to add the tool.
+        """
+        category_node = self.find_category_node(tool.category)
+        if category_node is None:
+            category_node = TreeNode(tool.category)
+            self.root.add_child(category_node)
+        category_node.add_child(TreeNode(tool.name, tool))
+
+    def find_category_node(self, category_name):
+        """
+        Finds the category node in the tree.
+
+        Args:
+            category_name (str): The name of the category to find.
 
         Returns:
-            TreeNode: The node with the specified value, or None if not found.
+            TreeNode: The category node if found, None otherwise.
         """
-        if self.value == value:
-            return self
-        for child in self.children:
-            result = child.find(value)
-            if result is not None:
-                return result
+        if self.root.children:
+            for child in self.root.children:
+                if child.name == category_name:
+                    return child
+
         return None
 
-    def __eq__(self, other):
+    def get_tools_in_category(self, category_name):
         """
-        Checks if two TreeNode instances are equal.
+        Retrieves all tools in a specified category.
 
         Args:
-            other: The other TreeNode instance to compare with.
+            category_name (str): The name of the category to retrieve tools from.
 
         Returns:
-            bool: True if the nodes are equal, False otherwise.
+            list: A list of tools in the specified category.
         """
-        if not isinstance(other, TreeNode):
-            return False
-        return self.value == other.value and self.children == other.children
+        category_node = self.find_category_node(category_name)
+        if category_node:
+            return [child.name for child in category_node.children]
+        return []
 
-    def __hash__(self):
+    def search_tools(self, keyword):
         """
-        Returns a hash of the TreeNode instance.
+        Searches for tools by keyword.
+
+        Args:
+            keyword (str): The keyword to search for.
 
         Returns:
-            int: The hash value of the TreeNode.
+            list: A list of tools matching the keyword.
         """
-        return hash((self.value, tuple(self.children)))
 
-    def __iter__(self):
+        key_tools = []
+        for category in self.root.children:
+            for tool in category.children:
+                if keyword.lower() in tool.name.lower() or keyword.lower() in tool.tool.category.lower():
+                    key_tools += f"{tool.name} ({tool.tool.category}) - {tool.tool.cost} \n"
+        return key_tools
+
+    def traverse_tree(self, node=None, level=0):
         """
-        Allows iteration over the children of the TreeNode.
+        Traverses the tree and prints the nodes.
 
-        Yields:
-            TreeNode: The child nodes of the TreeNode.
+        Args:
+            node (TreeNode): The current node to traverse. Defaults to the root node.
+            level (int): The current level in the tree. Defaults to 0.
+
+        Returns:
+            Tree structure printed to the console.
         """
-        for child in self.children:
-            yield child
 
-    def traverse(self):
-        """
-        Traverses the tree in a pre-order manner.
+        if node is None:
+            node = self.root
 
-        Yields:
-            TreeNode: The current node during traversal.
-        """
-        yield self
-
-        for child in self.children:
-            yield from child.traverse()
+        indent = " " * (level * 4)
+        print(f"{indent}- {node.name}")
+        for child in node.children:
+            self.traverse_tree(child, level + 1)

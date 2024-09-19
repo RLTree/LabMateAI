@@ -1,0 +1,106 @@
+"""
+Recommender module for suggesting tools based on user input.
+"""
+
+from .graph import Graph
+from .tree import ToolTree
+
+
+class Recommender:
+    """
+    A class that integrates the graph and tree structures to recommend tools based input.
+    """
+
+    def __init__(self, tools):
+        """
+        Initializes the recommender with a list of tools.
+
+        Args:
+            tools (list): A list of tools to be used for recommendations.
+        """
+
+        self.graph = Graph()
+        self.tree = ToolTree()
+        self.tools = tools
+
+    def build_recommendation_system(self):
+        """
+        Builds the recommendation system by constructing the graph and tree.
+        """
+
+        self.graph.build_graph(self.tools)
+        self.tree.build_tree(self.tools)
+
+    def recommend_similar_tools(self, tool_name, num_recommendations=5):
+        """
+        Recommends similar tools based on the input tool name.
+
+        Args:
+            tool_name (str): The name of the tool to find recommendations for.
+            num_recommendations (int): The number of recommendations to return.
+
+        Returns:
+            list: A list of recommended tools.
+        """
+
+        return self.graph.find_most_relevant_tools(tool_name, num_recommendations)
+
+    def recommend_tools_in_category(self, category_name):
+        """
+        Recommends tools based on the specified category.
+
+        Args:
+            category_name (str): The name of the category to find recommendations for.
+
+        Returns:
+            list: A list of recommended tools in the specified category.
+        """
+
+        return self.tree.get_tools_in_category(category_name)
+
+    def search_and_recommend(self, keyword):
+        """
+        Searches for tools based on a keyword and recommends them.
+
+        Args:
+            keyword (str): The keyword to search for.
+
+        Returns:
+            list: A list of recommended tools based on the search.
+        """
+
+        return self.tree.search_tools(keyword)
+
+    def recommend(self, tool_name=None, category_name=None, keyword=None, num_recommendations=5):
+        """
+        Provides recommendations based on the input parameters.
+
+        Args:
+            tool_name (str): The name of the tool to find recommendations for.
+            category_name (str): The name of the category to find recommendations for.
+            keyword (str): The keyword to search for.
+
+        Returns:
+            list: A list of recommended tools based on the input parameters.
+        """
+
+        if tool_name:
+            return self.recommend_similar_tools(tool_name, num_recommendations)
+        elif category_name:
+            return self.recommend_tools_in_category(category_name)
+        elif keyword:
+            return self.search_and_recommend(keyword)
+        else:
+            return []
+
+    def display_recommendations(self, recommendations):
+        """
+        Displays the recommended tools.
+
+        Args:
+            recommendations (list): A list of recommended tools to display.
+        """
+
+        for tool in recommendations:
+            print(
+                f"{tool.name} - {tool.description} (Category: {tool.category}, Cost: {tool.cost}")

@@ -34,7 +34,7 @@ class Graph:
         """
         self.graph_dict = {}
 
-    def add_tool(self, tool):
+    def add_node(self, tool):
         """
         Add a tool (node) to the graph.
 
@@ -42,37 +42,70 @@ class Graph:
             tool (Vertex): The tool to be added to the graph.
         """
         if isinstance(tool, Tool):
-            self.graph_dict[tool.name] = tool
-        else:
-            raise TypeError("Expected a Tool instance.")
+            if tool not in self.graph_dict:
+                self.graph_dict[tool] = []
 
-    def add_neighbor(self, from_tool, to_tool, weight=0):
+    def add_edge(self, tool1, tool2, weight=0):
         """
-        Add a neighbor (edge) between two tools in the graph.
+        Add an edge (connection) between two tools in the graph.
 
         Args:
             from_tool (Vertex): The tool from which the edge originates.
             to_tool (Vertex): The tool to which the edge points.
             weight (float): The weight of the edge. Defaults to 0.
         """
-        self.graph_dict[from_tool.name].add_edge(to_tool.name)
-        if not self.directed:
-            self.graph_dict[to_tool.value].add_edge(from_tool.value, weight)
+        self.graph_dict[tool1].append((tool2, weight))
+        self.graph_dict[tool2].append((tool1, weight))
 
     def get_neighbors(self, tool):
         """
-        Get all neighboring tools connected to the specified tool.
+        Get the neighbors of a given tool.
 
         Args:
-            tool (Vertex): The tool whose neighbors are to be retrieved.
+            tool (Vertex): The tool for which to find neighbors.
 
         Returns:
             list: A list of neighboring tools.
         """
-        neighbor_tools = []
-        for i in self.graph_dict[tool.value].get_edges():
-            neighbor_tools += i
-        return neighbor_tools
+        return self.graph_dict.get(tool, [])
+
+    def calculate_simularity(self, tool1, tool2):
+        """
+        Calculate the similarity between two tools based on their attributes."""
+        similarity_score = 0
+        CATEGORY_WEIGHT = 1.0
+        FEATURE_WEIGHT = 0.5
+        COST_WEIGHT = 0.2
+
+        if tool1.category == tool2.category:
+            similarity_score += CATEGORY_WEIGHT
+
+        shared_features = set(tool1.features).intersection(set(tool2.features))
+        total_features = set(tool1.features).union(set(tool2.features))
+        if total_features:
+            feature_similarity = len(shared_features) / len(total_features)
+            similarity_score += feature_similarity * FEATURE_WEIGHT
+
+        if tool1.cost == tool2.cost:
+            similarity_score += COST_WEIGHT
+
+        return similarity_score
+
+    def build_graph(self, tools):
+        """
+        Build the graph from a list of tools.
+
+        Args:
+            tools (list): A list of Tool instances to be added to the graph.
+        """
+        for tool in tools:
+            self.add_node(tool)
+
+        for i, tool1 in enumerate(tools):
+            for tool2 in tools[i + 1:]:
+                similarity = self.calculate_simularity(tool1, tool2)
+                if similarity > 0:
+                    self.add_edge(tool1, tool2, similarity)
 
     def dijkstra(self, start_tool):
         """
@@ -91,14 +124,14 @@ class Graph:
         tools_to_explore = [(0, start_tool)]
         while tools_to_explore:
             current_distance, current_tool = heappop(tools_to_explore)
-            for neighbor, edge_weight in self.graph_dict[current_tool].get_edges():
-                new_distance = current_distance + edge_weight
+            for neighbor, similarity in self.get_neighbors(current_tool):
+                new_distance = current_distance + similarity
                 if new_distance < distances[neighbor]:
                     distances[neighbor] = new_distance
                     heappush(tools_to_explore, (new_distance, neighbor))
         return distances
 
-    def find_most_relevant_tools(self, start_tool, criteria):
+    def find_most_relevant_tools(self, start_tool, num_recommendations=5):
         """
         Find the most relevant tools based on the specified criteria using graph traversal.
 
@@ -111,32 +144,8 @@ class Graph:
             list: A list of the most relevant tools that match the criteria.
         """
         distances = self.dijkstra(start_tool)
-        relevant_tools = []
-        for distance in distances:
-            if self.matches_criteria(distance, criteria):
-                relevant_tools.append(distance)
-        relevant_tools.sort(lambda x: x[1])
-        return [tool for tool, distance in relevant_tools]
-
-    def matches_criteria(self, tool, criteria):
-        """
-        Check if the tool matches the given criteria.
-
-        Args:
-            tool (Vertex): The tool to be checked.
-            criteria (dict): A dictionary of criteria to match against the tool.
-                             Example: {'cost': 'free', 'field': 'genomics', 'feature': 'RNA-seq'}
-
-        Returns:
-            bool: True if the tool matches the criteria, False otherwise.
-        """
-        if 'cost' in criteria and criteria['cost'] < tool.cost:
-            return False
-        if 'field' in criteria and criteria['field'] != tool.field:
-            return False
-        if 'feature' in criteria and criteria['feature'] not in tool.features:
-            return False
-        return True
+        relevant_tools = sorted(distances.items(), key=lambda x: x[1])
+        return [tool for tool, distance in relevant_tools[:num_recommendations]]
 
     def __repr__(self):
         """
