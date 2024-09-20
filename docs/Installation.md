@@ -4,7 +4,7 @@
 Welcome to the installation guide for **LabMate**, a scientific tool recommendation system designed to help researchers discover relevant software for their needs. Follow the steps below to install and set up LabMate on your machine.
 
 ---
-
+ 
 ## Prerequisites
 
 Before installing LabMate, make sure you have the following software installed:
