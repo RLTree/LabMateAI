@@ -4,7 +4,7 @@
 Welcome to the LabMate documentation. This document provides detailed information on how to use the system and its various features.
 
 ## Table of Contents
-- [Installation](installation.md)
+- [Installation](Installation.md)
 - [Usage Guide](usage_guide.md)
 - [Command-Line Options](cli_options.md)
 - [API Documentation](api.md)
