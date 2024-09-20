@@ -1,0 +1,23 @@
+# Core requirements
+argparse==1.4.0
+collections-extended==1.0.3
+
+# JSON handling (optional if needed for loading tools)
+jsonlib-python3==1.6.1
+
+# For managing data structures and algorithms (if using external libraries)
+networkx==2.8.8
+
+# Testing dependencies
+unittest2==1.1.0
+pytest==7.4.0
+pytest-mock==3.11.1
+
+# Mocking and testing utilities
+mock==5.0.2
+
+# Linting and code style (optional, but recommended)
+flake8==6.1.0
+
+# Data loading/parsing libraries (if handling complex data formats like JSON)
+pandas==2.1.1
