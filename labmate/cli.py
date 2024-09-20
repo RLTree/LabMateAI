@@ -18,8 +18,8 @@ Examples:
 """
 
 import argparse
-from .recommender import Recommender
-from .data_loader import load_tools_from_json
+from recommender import Recommender
+from data_loader import load_tools_from_json
 
 
 class CLI:

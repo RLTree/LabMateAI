@@ -1,6 +1,6 @@
 import json
 import csv
-from .tool import Tool
+from tool import Tool
 
 
 def load_tools_from_json(file_path):

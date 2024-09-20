@@ -9,15 +9,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="labmate",  # Replace with your project name
+    name="LabMate",  # Replace with your project name
     version="1.0.0",
     author="Terry A. Noblin",
-    author_email="your.email@example.com",  # Replace with your email
+    author_email="tnoblin@health.ucsd.edu",  # Replace with your email
     description="A scientific tool recommendation system for researchers",
     long_description=long_description,
     long_description_content_type="text/markdown",
     # Replace with your GitHub repository
-    url="https://github.com/your-repo/labmate",
+    url="https://github.com/RLTree/LabMate",
     packages=find_packages(),  # Automatically finds your project packages
     classifiers=[
         "Programming Language :: Python :: 3",

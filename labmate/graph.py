@@ -12,7 +12,7 @@ Classes:
 
 from math import inf
 from heapq import heappush, heappop
-from .tool import Tool
+from tool import Tool
 
 
 class Graph:
