@@ -103,17 +103,19 @@ class CLI:
         """
         recommendations = []
 
-        if args.tool:
+        if args.help:
+            self.display_help()
+        elif args.tool:
             recommendations = self.recommender.recommend_similar_tools(
-                tool_name=args.tool, num_recommendations=args.num)
+                args.tool, args.num)
         elif args.category:
             recommendations = self.recommender.recommend_tools_in_category(
-                category_name=args.category)
+                args.category)
         elif args.search:
             recommendations = self.recommender.search_and_recommend(
-                keyword=args.search)
+                args.search)
         else:
-            print("Please provide a valid input. Use -h or --help for more information.")
+            print("Please provide a valid input. Use -H or --help for more information.")
             return
 
         # Display the recommendations if available

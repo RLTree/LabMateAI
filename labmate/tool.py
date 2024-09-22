@@ -13,13 +13,13 @@ class Tool:
             name (str): The name of the tool.
             category (str): The category of the tool.
             features (list): A list of features of the tool.
-            cost (float): The cost of the tool.
+            cost (str): The cost of the tool.
             description (str, optional): A description of the tool. Defaults to None.
             url (str, optional): A URL for more information about the tool. Defaults to None.
         """
         self.name = name
         self.category = category
-        self.features = features
+        self.features = features if features else []
         self.cost = cost
         self.description = description
         self.url = url

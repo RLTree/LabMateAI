@@ -22,6 +22,7 @@ class Recommender:
         self.graph = Graph()
         self.tree = ToolTree()
         self.tools = tools
+        self.build_recommendation_system()
 
         print(f"Loaded tools: {self.tools}")
 
@@ -46,20 +47,14 @@ class Recommender:
         """
 
         # Retrieve recommendations (tool names) from the graph
-        recommended_tool_names = self.graph.find_most_relevant_tools(
-            tool_name, num_recommendations)
+        selected_tool = next(
+            (tool for tool in self.tools if tool.name == tool_name), None)
 
-        # Debugging: Print the recommended tool names to see if they are retrieved
-        print(f"Recommended tools for {tool_name}: {recommended_tool_names}")
+        if not selected_tool:
+            print(f"Tool '{tool_name}' not found.")
+            return []
 
-        # Look up full tool details for each recommended tool name
-        recommendations = [
-            tool for tool in self.tools if tool.name in recommended_tool_names]
-
-        # Debugging: Print the full tool information retrieved
-        print(f"Full tool details: {recommendations}")
-
-        return recommendations
+        return self.graph.find_most_relevant_tools(selected_tool, num_recommendations)
 
     def recommend_tools_in_category(self, category_name):
         """

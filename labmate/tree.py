@@ -57,8 +57,7 @@ class ToolTree:
         Adds a tool to the tree under the specified category.
 
         Args:
-            tool_name (str): The name of the tool to add.
-            category (str): The category under which to add the tool.
+            tool: The tool to add.
         """
         category_node = self.find_category_node(tool.category)
         if category_node is None:
@@ -95,7 +94,7 @@ class ToolTree:
         """
         category_node = self.find_category_node(category_name)
         if category_node:
-            return [child.name for child in category_node.children]
+            return [child.tool for child in category_node.children]
         return []
 
     def search_tools(self, keyword):
@@ -109,12 +108,12 @@ class ToolTree:
             list: A list of tools matching the keyword.
         """
 
-        key_tools = []
+        matching_tools = []
         for category in self.root.children:
-            for tool in category.children:
-                if keyword.lower() in tool.name.lower() or keyword.lower() in tool.tool.category.lower():
-                    key_tools += f"{tool.name} ({tool.tool.category}) - {tool.tool.cost} \n"
-        return key_tools
+            for node in category.children:
+                if keyword.lower() in node.name.lower() or keyword.lower() in node.tool.category.lower():
+                    matching_tools.append(node.tool)
+        return matching_tools
 
     def traverse_tree(self, node=None, level=0):
         """

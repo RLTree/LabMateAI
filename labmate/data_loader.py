@@ -13,10 +13,11 @@ def load_tools_from_json(file_path):
     Returns:
         list: A list of Tool instances.
     """
+
+    tools = []
     with open(file_path, 'r', encoding='utf-8') as file:
         tools_data = json.load(file)
 
-    tools = []
     for tool_data in tools_data:
         tool = Tool(
             name=tool_data['name'],
@@ -51,7 +52,7 @@ def load_tools_from_csv(file_path):
                 category=row['category'],
                 # Assuming features are semicolon-separated
                 features=row['features'].split(';'),
-                cost=float(row['cost']),
+                cost=row['cost'],
                 description=row.get('description'),
                 url=row.get('url')
             )

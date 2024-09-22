@@ -11,6 +11,7 @@ Classes:
 """
 
 from math import inf
+from itertools import count
 from heapq import heappush, heappop
 from tool import Tool
 
@@ -28,18 +29,12 @@ class Graph:
     def __init__(self):
         """
         Initialize the graph.
-
-        Args:
-            directed (bool): If True, the graph is directed. Defaults to False.
         """
         self.graph_dict = {}
 
     def add_node(self, tool):
         """
         Add a tool (node) to the graph.
-
-        Args:
-            tool (Vertex): The tool to be added to the graph.
         """
         if isinstance(tool, Tool):
             if tool not in self.graph_dict:
@@ -48,11 +43,6 @@ class Graph:
     def add_edge(self, tool1, tool2, weight=0):
         """
         Add an edge (connection) between two tools in the graph.
-
-        Args:
-            from_tool (Vertex): The tool from which the edge originates.
-            to_tool (Vertex): The tool to which the edge points.
-            weight (float): The weight of the edge. Defaults to 0.
         """
         self.graph_dict[tool1].append((tool2, weight))
         self.graph_dict[tool2].append((tool1, weight))
@@ -60,21 +50,16 @@ class Graph:
     def get_neighbors(self, tool):
         """
         Get the neighbors of a given tool.
-
-        Args:
-            tool (Vertex): The tool for which to find neighbors.
-
-        Returns:
-            list: A list of neighboring tools.
         """
         return self.graph_dict.get(tool, [])
 
     def calculate_simularity(self, tool1, tool2):
         """
-        Calculate the similarity between two tools based on their attributes."""
+        Calculate the similarity between two tools based on their attributes.
+        """
         similarity_score = 0
         CATEGORY_WEIGHT = 1.0
-        FEATURE_WEIGHT = 0.5
+        FEATURE_WEIGHT = 2.0
         COST_WEIGHT = 0.2
 
         if tool1.category == tool2.category:
@@ -86,8 +71,12 @@ class Graph:
             feature_similarity = len(shared_features) / len(total_features)
             similarity_score += feature_similarity * FEATURE_WEIGHT
 
-        if tool1.cost == tool2.cost:
+        if tool1.cost.lower() == tool2.cost.lower():
             similarity_score += COST_WEIGHT
+
+        # Debugging: Print the similarity score
+        print(
+            f"Similarity between {tool1.name} and {tool2.name}: {similarity_score}")
 
         return similarity_score
 
@@ -98,6 +87,9 @@ class Graph:
         Args:
             tools (list): A list of Tool instances to be added to the graph.
         """
+        MAX_SIMILARITY_SCORE = 3.2
+        SIMILARITY_THRESHOLD = 0.3
+
         for tool in tools:
             self.add_node(tool)
 
@@ -105,7 +97,20 @@ class Graph:
             for tool2 in tools[i + 1:]:
                 similarity = self.calculate_simularity(tool1, tool2)
                 if similarity > 0:
-                    self.add_edge(tool1, tool2, similarity)
+                    normalized_similarity = similarity / MAX_SIMILARITY_SCORE
+                    if normalized_similarity > SIMILARITY_THRESHOLD:
+                        dissimilarity = 1.0 - normalized_similarity
+                        self.add_edge(tool1, tool2, dissimilarity)
+
+                        # Debugging: Print the edges being created
+                        print(
+                            f"Edge created between {tool1.name} and {tool2.name} with dissimilarity {dissimilarity}")
+
+        # Debugging: Print the graph structure after building it
+        print("Graph Structure:")
+        for tool, neighbors in self.graph_dict.items():
+            print(
+                f"{tool.name}: {[neighbor.name for neighbor, weight in neighbors]}")
 
     def dijkstra(self, start_tool):
         """
@@ -117,18 +122,28 @@ class Graph:
         Returns:
             dict: A dictionary containing the shortest distances from start tool to each other tool.
         """
-        distances = {}
-        for tool in self.graph_dict:
-            distances[tool] = inf
+        distances = {tool: inf for tool in self.graph_dict}
         distances[start_tool] = 0
-        tools_to_explore = [(0, start_tool)]
+        counter = count()
+        tools_to_explore = [(0, next(counter), start_tool)]
+
+        # Debugging: Print initial distances
+        print(f"Starting Dijkstra from {start_tool.name}...")
+
         while tools_to_explore:
-            current_distance, current_tool = heappop(tools_to_explore)
+            current_distance, _, current_tool = heappop(tools_to_explore)
+
             for neighbor, similarity in self.get_neighbors(current_tool):
                 new_distance = current_distance + similarity
                 if new_distance < distances[neighbor]:
                     distances[neighbor] = new_distance
-                    heappush(tools_to_explore, (new_distance, neighbor))
+                    heappush(tools_to_explore,
+                             (new_distance, next(counter), neighbor))
+
+        # Debugging Print final distances
+        print("Dijkstra distances:", {
+              tool.name: dist for tool, dist in distances.items()})
+
         return distances
 
     def find_most_relevant_tools(self, start_tool, num_recommendations=5):
@@ -136,16 +151,25 @@ class Graph:
         Find the most relevant tools based on the specified criteria using graph traversal.
 
         Args:
-            start_tool (str): The value of the starting tool for the search.
-            criteria (dict): A dictionary of criteria to match against tools.
-                             Example: {'cost': 'free', 'field': 'genomics', 'feature': 'RNA-seq'}
+            start_tool (Tool): The starting tool for the search.
+            num_recommendations (int): The number of recommendations to return.
 
         Returns:
-            list: A list of the most relevant tools that match the criteria.
+            list: A list of the most relevant tools.
         """
+
+        # Run Dijkstra's algorithm to get the "distances" (similarity scores)
         distances = self.dijkstra(start_tool)
+
+        # Sort tools by their distance (similarity) to the start tool
         relevant_tools = sorted(distances.items(), key=lambda x: x[1])
-        return [tool for tool, distance in relevant_tools[:num_recommendations]]
+
+        # Exclude the starting tool from the recommendations
+        filtered_tools = [tool for tool,
+                          distance in relevant_tools if tool != start_tool]
+
+        # Return the top recommendations (up to num_recommendations)
+        return filtered_tools[:num_recommendations]
 
     def __repr__(self):
         """
@@ -156,8 +180,8 @@ class Graph:
                  and its connected neighbors with the respective weights.
         """
         graph_repr = ""
-        for tool_value, tool in self.graph_dict.items():
+        for tool, neighbors in self.graph_dict.items():
             neighbor_str = ", ".join(
-                [f"{neighbor} (weight: {weight})" for neighbor, weight in tool.get_edges()])
-            graph_repr += f"{tool_value}: [{neighbor_str}]\n"
+                [f"{neighbor.name} (weight: {weight})" for neighbor, weight in neighbors])
+            graph_repr += f"{tool.name}: [{neighbor_str}]\n"
         return graph_repr
