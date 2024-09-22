@@ -20,4 +20,4 @@ mock==5.0.2
 flake8==6.1.0
 
 # Data loading/parsing libraries (if handling complex data formats like JSON)
-pandas==2.1.1
+pandas==2.0.3

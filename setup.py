@@ -35,7 +35,7 @@ setup(
         "pytest-mock==3.11.1",
         "mock==5.0.2",
         "flake8==6.1.0",
-        "pandas==2.1.1",
+        "pandas==2.0.3",
     ],
     entry_points={
         'console_scripts': [

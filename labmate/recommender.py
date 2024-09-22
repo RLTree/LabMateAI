@@ -23,6 +23,8 @@ class Recommender:
         self.tree = ToolTree()
         self.tools = tools
 
+        print(f"Loaded tools: {self.tools}")
+
     def build_recommendation_system(self):
         """
         Builds the recommendation system by constructing the graph and tree.
@@ -43,7 +45,21 @@ class Recommender:
             list: A list of recommended tools.
         """
 
-        return self.graph.find_most_relevant_tools(tool_name, num_recommendations)
+        # Retrieve recommendations (tool names) from the graph
+        recommended_tool_names = self.graph.find_most_relevant_tools(
+            tool_name, num_recommendations)
+
+        # Debugging: Print the recommended tool names to see if they are retrieved
+        print(f"Recommended tools for {tool_name}: {recommended_tool_names}")
+
+        # Look up full tool details for each recommended tool name
+        recommendations = [
+            tool for tool in self.tools if tool.name in recommended_tool_names]
+
+        # Debugging: Print the full tool information retrieved
+        print(f"Full tool details: {recommendations}")
+
+        return recommendations
 
     def recommend_tools_in_category(self, category_name):
         """
@@ -55,8 +71,8 @@ class Recommender:
         Returns:
             list: A list of recommended tools in the specified category.
         """
-
-        return self.tree.get_tools_in_category(category_name)
+        recommendations = self.tree.get_tools_in_category(category_name)
+        return recommendations
 
     def search_and_recommend(self, keyword):
         """
@@ -69,7 +85,8 @@ class Recommender:
             list: A list of recommended tools based on the search.
         """
 
-        return self.tree.search_tools(keyword)
+        recommendations = self.tree.search_tools(keyword)
+        return recommendations
 
     def recommend(self, tool_name=None, category_name=None, keyword=None, num_recommendations=5):
         """
@@ -85,13 +102,15 @@ class Recommender:
         """
 
         if tool_name:
-            return self.recommend_similar_tools(tool_name, num_recommendations)
+            recommendations = self.recommend_similar_tools(
+                tool_name, num_recommendations)
         elif category_name:
-            return self.recommend_tools_in_category(category_name)
+            recommendations = self.recommend_tools_in_category(category_name)
         elif keyword:
-            return self.search_and_recommend(keyword)
+            recommendations = self.search_and_recommend(keyword)
         else:
             return []
+        return recommendations
 
     def display_recommendations(self, recommendations):
         """
@@ -100,7 +119,10 @@ class Recommender:
         Args:
             recommendations (list): A list of recommended tools to display.
         """
-
-        for tool in recommendations:
-            print(
-                f"{tool.name} - {tool.description} (Category: {tool.category}, Cost: {tool.cost}")
+        if not recommendations:
+            print("No recommendations found.")
+        else:
+            for tool in recommendations:
+                print(
+                    f"{tool.name} - {tool.description} (Category: {tool.category}, Cost: {tool.cost})"
+                )

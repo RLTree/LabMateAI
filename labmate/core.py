@@ -2,8 +2,8 @@
 The core module of the LabMate application, responsible for managing the main functionalities and interactions.
 """
 
-from recommender import Recommender
 from queue import RequestQueue
+from recommender import Recommender
 from cli import CLI
 from data_loader import load_tools_from_json
 
