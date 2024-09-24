@@ -13,7 +13,7 @@ Classes:
 from math import inf
 from itertools import count
 from heapq import heappush, heappop
-from tool import Tool
+from .tool import Tool
 
 
 class Graph:

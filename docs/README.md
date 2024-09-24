@@ -1,18 +1,16 @@
 
-# LabMate Documentation
+# LabMateAI Documentation
 
-Welcome to the LabMate documentation. This document provides detailed information on how to use the system and its various features.
+Welcome to the LabMateAI documentation. This document provides detailed information on how to use the system and its various features.
 
 ## Table of Contents
-- [Installation](Installation.md)
+- [Installation](installation.md)
 - [Usage Guide](usage_guide.md)
-- [Command-Line Options](cli_options.md)
 - [API Documentation](api.md)
-- [Contribution Guidelines](contributing.md)
 
 ## Getting Started
 
-To get started with LabMate, follow the [Installation Guide](installation.md).
+To get started with LabMateAI, follow the [Installation Guide](installation.md).
 
 ## Features
 - Detailed descriptions of the command-line interface.

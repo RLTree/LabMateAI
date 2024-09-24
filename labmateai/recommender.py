@@ -2,8 +2,8 @@
 Recommender module for suggesting tools based on user input.
 """
 
-from graph import Graph
-from tree import ToolTree
+from .graph import Graph
+from .tree import ToolTree
 
 
 class Recommender:

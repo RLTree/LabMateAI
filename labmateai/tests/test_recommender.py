@@ -3,8 +3,8 @@ Unit tests for the Recommender class.
 """
 
 import unittest
-from labmate.recommender import Recommender
-from labmate.data_loader import load_tools_from_json
+from labmateai.recommender import Recommender
+from labmateai.data_loader import load_tools_from_json
 
 
 class TestRecommender(unittest.TestCase):
@@ -17,33 +17,39 @@ class TestRecommender(unittest.TestCase):
         """
         Load tools and set up the Recommender instance before all tests.
         """
-        cls.tools = load_tools_from_json('data/tools.json')
+        cls.tools = load_tools_from_json('tools.json')
         cls.recommender = Recommender(cls.tools)
 
     def test_recommend_similar_tools(self):
         """
-        Test recommending similar tools to a given tool.
+        Test recommending similar tools.
         """
-        recommendations = self.recommender.recommend_similar_tools(
-            'FastQC', num_recommendations=3)
+        recommendations = self.recommender.recommend_similar_tools('Seurat', 3)
         self.assertEqual(len(recommendations), 3)
-        self.assertTrue(any(tool.name == 'BLAST' for tool in recommendations))
+        self.assertNotIn('Seurat', [tool.name for tool in recommendations])
 
     def test_recommend_tools_in_category(self):
         """
-        Test recommending tools in a specific category.
+        Test recommending tools from a category.
         """
         recommendations = self.recommender.recommend_tools_in_category(
             'Genomics')
         self.assertGreater(len(recommendations), 0)
-        self.assertTrue(
-            any(tool.category == 'Genomics' for tool in recommendations))
+        for tool in recommendations:
+            self.assertEqual(tool.category, 'Genomics')
 
     def test_search_and_recommend(self):
         """
-        Test searching for tools using a keyword.
+        Test searching tools by keyword.
         """
         recommendations = self.recommender.search_and_recommend('RNA')
         self.assertGreater(len(recommendations), 0)
         self.assertTrue(
-            any('RNA' in tool.description for tool in recommendations))
+            any('RNA' in tool.name or 'RNA' in tool.description for tool in recommendations))
+
+    def test_invalid_tool_name(self):
+        """
+        Test handling of invalid tool names.
+        """
+        with self.assertRaises(ValueError):
+            self.recommender.recommend_similar_tools('NonExistentTool', 3)

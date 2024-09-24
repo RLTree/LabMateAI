@@ -1,158 +1,225 @@
+# LabMateAI API Documentation
 
-# LabMate API Documentation
-
-This document provides an overview of the core classes, methods, and functions used in the **LabMate** scientific tool recommendation system. Developers can use this API documentation to understand how to extend and interact with LabMate's internal components.
+This document provides an overview of the core classes, methods, and functions used in the **LabMateAI** scientific tool recommendation system. Developers can use this API documentation to understand how to extend and interact with LabMateAI's internal components.
 
 ---
 
 ## Table of Contents
 
-1. [Graph Class](#graph-class)
-2. [Tree Class](#tree-class)
-3. [Recommender Class](#recommender-class)
-4. [RequestQueue Class](#requestqueue-class)
+1. [Tool Class](#tool-class)
+2. [Graph Class](#graph-class)
+3. [ToolTree Class](#tooltree-class)
+4. [Recommender Class](#recommender-class)
 5. [CLI Class](#cli-class)
-6. [LabMateCore Class](#labmatecore-class)
+6. [Data Loader Module](#data-loader-module)
+
+---
+
+## Tool Class
+
+The `Tool` class represents an individual scientific tool with its associated attributes.
+
+### Attributes
+
+- **name** (`str`): The name of the tool.
+- **category** (`str`): The category to which the tool belongs.
+- **features** (`list` of `str`): A list of features associated with the tool.
+- **cost** (`str`): The cost of the tool (e.g., "Free", "Paid").
+- **description** (`str`): A brief description of the tool.
+- **url** (`str`): The URL to the tool's homepage or repository.
+- **language** (`str`, optional): The programming language associated with the tool.
+- **platform** (`str`, optional): The platform(s) the tool supports (e.g., "Windows", "macOS", "Linux", "Web-Based").
+
+### Methods
+
+#### `__init__(self, name, category, features, cost, description, url, language=None, platform=None)`
+
+- **Description**: Initializes a new instance of the `Tool` class.
+- **Parameters**:
+  - `name` (`str`): The name of the tool.
+  - `category` (`str`): The category of the tool.
+  - `features` (`list` of `str`): Features associated with the tool.
+  - `cost` (`str`): The cost of the tool.
+  - `description` (`str`): A brief description.
+  - `url` (`str`): The URL to the tool's homepage.
+  - `language` (`str`, optional): Programming language used.
+  - `platform` (`str`, optional): Supported platforms.
 
 ---
 
 ## Graph Class
 
-The `Graph` class manages the relationships between scientific tools, allowing LabMate to suggest similar tools. The graph is built from nodes representing tools and edges representing relationships between them.
+The `Graph` class manages the relationships between scientific tools, allowing LabMateAI to suggest similar tools. The graph is built from nodes representing tools and edges representing the similarity between them.
 
 ### Methods
 
-#### `add_node(tool)`
+#### `build_graph(self, tools)`
+
+- **Description**: Builds the graph by adding nodes and edges based on the list of tools.
+- **Parameters**:
+  - `tools` (`list` of `Tool`): The list of tools to build the graph from.
+
+#### `add_node(self, tool)`
+
 - **Description**: Adds a node to the graph for a given tool.
-- **Arguments**:
-  - `tool` (Tool): The tool to be added as a node.
+- **Parameters**:
+  - `tool` (`Tool`): The tool to be added as a node.
 
-#### `add_edge(tool1, tool2, weight)`
+#### `add_edge(self, tool1, tool2, weight)`
+
 - **Description**: Adds an edge between two tools to indicate their similarity.
-- **Arguments**:
-  - `tool1` (Tool): The first tool.
-  - `tool2` (Tool): The second tool.
-  - `weight` (float): The weight of the relationship.
+- **Parameters**:
+  - `tool1` (`Tool`): The first tool.
+  - `tool2` (`Tool`): The second tool.
+  - `weight` (`float`): The weight representing dissimilarity (1 - similarity).
 
-#### `get_neighbors(tool)`
-- **Description**: Returns a list of tools connected to the specified tool.
-- **Arguments**:
-  - `tool` (Tool): The tool whose neighbors you want to retrieve.
+#### `get_neighbors(self, tool)`
 
-#### `find_most_relevant_tools(tool, num_recommendations=5)`
-- **Description**: Finds and returns the most relevant tools connected to the specified tool.
-- **Arguments**:
-  - `tool` (Tool): The starting tool.
-  - `num_recommendations` (int, optional): The number of tools to return (default is 5).
+- **Description**: Returns a list of neighboring tools connected to the specified tool.
+- **Parameters**:
+  - `tool` (`Tool`): The tool whose neighbors you want to retrieve.
+- **Returns**:
+  - `neighbors` (`list` of `Tool`): A list of neighboring tools.
 
 ---
 
-## Tree Class
+## ToolTree Class
 
-The `Tree` class represents the hierarchical structure for categorizing tools. Tools are organized into categories, and each category contains a list of tools.
+The `ToolTree` class represents the hierarchical structure for categorizing tools. Tools are organized into categories, and each category contains a list of tools.
 
 ### Methods
 
-#### `add_tool(tool)`
+#### `build_tree(self, tools)`
+
+- **Description**: Builds the tree structure based on the list of tools.
+- **Parameters**:
+  - `tools` (`list` of `Tool`): The list of tools to build the tree from.
+
+#### `add_tool(self, tool)`
+
 - **Description**: Adds a tool to the tree under the appropriate category.
-- **Arguments**:
-  - `tool` (Tool): The tool to be added.
+- **Parameters**:
+  - `tool` (`Tool`): The tool to be added.
 
-#### `find_category_node(category_name)`
-- **Description**: Finds and returns the node representing the specified category.
-- **Arguments**:
-  - `category_name` (str): The name of the category.
+#### `get_tools_in_category(self, category_name)`
 
-#### `get_tools_in_category(category_name)`
 - **Description**: Returns a list of tools in the specified category.
-- **Arguments**:
-  - `category_name` (str): The category name to retrieve tools from.
+- **Parameters**:
+  - `category_name` (`str`): The category name to retrieve tools from.
+- **Returns**:
+  - `tools` (`list` of `Tool`): A list of tools in the category.
 
-#### `search_tools(keyword)`
-- **Description**: Searches for tools that match the provided keyword.
-- **Arguments**:
-  - `keyword` (str): The keyword to search for.
+#### `search_tools(self, keyword)`
+
+- **Description**: Searches for tools that match the provided keyword in their name, description, or features.
+- **Parameters**:
+  - `keyword` (`str`): The keyword to search for.
+- **Returns**:
+  - `results` (`list` of `Tool`): A list of matching tools.
+
+#### `get_all_categories(self)`
+
+- **Description**: Returns a list of all categories in the tree.
+- **Returns**:
+  - `categories` (`list` of `str`): A list of category names.
 
 ---
 
 ## Recommender Class
 
-The `Recommender` class handles the logic for recommending tools based on user input. It interacts with both the `Graph` and `Tree` structures to provide relevant recommendations.
+The `Recommender` class handles the logic for recommending tools based on user input. It interacts with both the `Graph` and `ToolTree` structures to provide relevant recommendations.
 
 ### Methods
 
-#### `build_recommendation_system()`
+#### `__init__(self, tools)`
+
+- **Description**: Initializes the Recommender with a list of tools.
+- **Parameters**:
+  - `tools` (`list` of `Tool`): The list of tools to build the recommendation system from.
+
+#### `build_recommendation_system(self)`
+
 - **Description**: Builds both the graph and tree structures from the list of tools.
 
-#### `recommend_similar_tools(tool_name, num_recommendations=5)`
+#### `recommend_similar_tools(self, tool_name, num_recommendations=5)`
+
 - **Description**: Recommends tools that are similar to the specified tool.
-- **Arguments**:
-  - `tool_name` (str): The name of the tool.
-  - `num_recommendations` (int, optional): The number of recommendations to return (default is 5).
+- **Parameters**:
+  - `tool_name` (`str`): The name of the tool.
+  - `num_recommendations` (`int`, optional): The number of recommendations to return (default is 5).
+- **Returns**:
+  - `recommendations` (`list` of `Tool`): A list of recommended tools.
+- **Raises**:
+  - `ValueError`: If the tool is not found.
 
-#### `recommend_tools_in_category(category_name)`
+#### `recommend_tools_in_category(self, category_name)`
+
 - **Description**: Recommends tools that belong to a specific category.
-- **Arguments**:
-  - `category_name` (str): The category name.
+- **Parameters**:
+  - `category_name` (`str`): The category name.
+- **Returns**:
+  - `recommendations` (`list` of `Tool`): A list of tools in the category.
+- **Raises**:
+  - `ValueError`: If the category is not found.
 
-#### `search_and_recommend(keyword)`
-- **Description**: Searches for tools using the provided keyword and returns recommendations.
-- **Arguments**:
-  - `keyword` (str): The keyword to search for.
+#### `search_and_recommend(self, keyword)`
 
----
-
-## RequestQueue Class
-
-The `RequestQueue` class manages the queue of user requests. It ensures that requests are handled in the order they are received.
-
-### Methods
-
-#### `add_request(request)`
-- **Description**: Adds a request to the queue.
-- **Arguments**:
-  - `request` (dict): A dictionary containing the request details.
-
-#### `process_next()`
-- **Description**: Processes the next request in the queue.
-
-#### `is_empty()`
-- **Description**: Checks if the queue is empty.
-- **Returns**: `True` if the queue is empty, otherwise `False`.
+- **Description**: Searches for tools using the provided keyword and returns matching tools.
+- **Parameters**:
+  - `keyword` (`str`): The keyword to search for.
+- **Returns**:
+  - `results` (`list` of `Tool`): A list of matching tools.
 
 ---
 
 ## CLI Class
 
-The `CLI` class handles the command-line interface for LabMate. It allows users to input commands and receive tool recommendations.
+The `CLI` class handles the command-line interface for LabMateAI. It allows users to interactively input commands and receive tool recommendations.
 
 ### Methods
 
-#### `start()`
-- **Description**: Starts the CLI and listens for user input.
+#### `__init__(self, tools)`
 
-#### `handle_recommendation(args)`
-- **Description**: Handles recommendation requests based on the parsed command-line arguments.
+- **Description**: Initializes the CLI with a list of tools.
+- **Parameters**:
+  - `tools` (`list` of `Tool`): The list of tools for recommendations.
 
----
+#### `start(self)`
 
-## LabMateCore Class
+- **Description**: Starts the CLI and listens for user input, presenting a menu of options.
 
-The `LabMateCore` class is the central orchestrator for the system. It coordinates between the CLI, queue, and recommender to process user requests.
+#### `recommend_similar_tools(self)`
 
-### Methods
+- **Description**: Prompts the user for a tool name and number of recommendations, then displays similar tools.
 
-#### `run()`
-- **Description**: Runs the core logic of LabMate, including starting the CLI and processing the request queue.
+#### `recommend_tools_in_category(self)`
 
-#### `add_request_to_queue(request)`
-- **Description**: Adds a new recommendation request to the queue.
-- **Arguments**:
-  - `request` (dict): A dictionary containing the recommendation request.
+- **Description**: Prompts the user for a category name and displays tools in that category.
 
-#### `process_queue()`
-- **Description**: Processes all requests in the queue.
+#### `search_tools(self)`
+
+- **Description**: Prompts the user for a keyword and displays matching tools.
 
 ---
 
-This API documentation covers the main internal components of the **LabMate** system. Developers can use this as a reference to extend or integrate LabMate with other systems.
+## Data Loader Module
+
+The `data_loader` module provides functions to load tool data from JSON files or other sources.
+
+### Functions
+
+#### `load_tools_from_json(filepath)`
+
+- **Description**: Loads tool data from a JSON file and returns a list of `Tool` instances.
+- **Parameters**:
+  - `filepath` (`str`): The path to the JSON file containing tool data.
+- **Returns**:
+  - `tools` (`list` of `Tool`): A list of tools created from the JSON data.
+
+---
+
+This API documentation covers the main internal components of the **LabMateAI** system. Developers can use this as a reference to extend or integrate LabMateAI with other systems.
+
+---
+
+**Note**: The functionality previously handled by the `RequestQueue` and `LabMateCore` classes has been integrated into other components like the `CLI` and `Recommender` classes to streamline the system.

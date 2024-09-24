@@ -1,188 +1,195 @@
+# LabMateAI Usage Guide
 
-# **LabMate Usage Guide**
+Welcome to the **LabMateAI Usage Guide**. This guide provides detailed instructions on how to use LabMateAI to discover and recommend scientific tools relevant to your research. Whether you're new to LabMateAI or looking to maximize its capabilities, this guide will help you navigate the application effectively.
 
-Welcome to **LabMate**, a scientific tool recommendation system that helps users find related scientific software and tools based on their input. This guide will walk you through the setup, usage, and functionality of the **LabMate** system.
+---
 
 ## Table of Contents
-1. [Installation](#installation)
-2. [Running LabMate](#running-labmate)
-3. [Command Line Interface (CLI) Usage](#command-line-interface-cli-usage)
-4. [Recommendation Types](#recommendation-types)
-5. [Example Commands](#example-commands)
-6. [Running Tests](#running-tests)
-7. [Development](#development)
-8. [Contact Information](#contact-information)
+
+- [Introduction](#introduction)
+- [Getting Started](#getting-started)
+  - [Launching the CLI](#launching-the-cli)
+  - [Navigating the Menu](#navigating-the-menu)
+- [Features and Commands](#features-and-commands)
+  - [1. Tool Similarity Recommendations](#1-tool-similarity-recommendations)
+  - [2. Category-Based Recommendations](#2-category-based-recommendations)
+  - [3. Keyword-Based Search](#3-keyword-based-search)
+- [Advanced Usage](#advanced-usage)
+- [Tips and Tricks](#tips-and-tricks)
+- [FAQ](#faq)
+- [Troubleshooting](#troubleshooting)
+- [Contact Support](#contact-support)
 
 ---
 
-## Installation
+## Introduction
 
-To install and run **LabMate**, follow these steps:
-
-### 1. Clone the Repository
-
-\`\`\`bash
-git clone https://github.com/RLTree/LabMate.git
-cd LabMate
-\`\`\`
-
-### 2. Install Dependencies
-
-Install the required dependencies using \`pip\`:
-
-\`\`\`bash
-pip install -r requirements.txt
-\`\`\`
-
-### 3. Set Up Tool Data
-
-Ensure you have the tool dataset in JSON format (e.g., \`tools.json\`) located in the \`data/\` directory. You can add your own tool data or use the default one provided.
+**LabMateAI** is an AI-powered recommendation system designed to assist researchers in discovering laboratory tools and software tailored to their scientific needs. By leveraging advanced algorithms and data structures, LabMateAI provides personalized recommendations based on tool similarity, categories, and keyword searches.
 
 ---
 
-## Running LabMate
+## Getting Started
 
-Once the dependencies are installed, you can start using the **LabMate** system.
+### Launching the CLI
 
-### 1. Running the CLI
+After installing LabMateAI, you can launch the command-line interface (CLI) by simply typing:
 
-To start the command-line interface (CLI), run:
+```bash
+labmateai
+```
 
-\`\`\`bash
-python cli.py
-\`\`\`
+### Navigating the Menu
 
-This will launch the CLI, where you can input commands to get tool recommendations.
+Upon launching, you'll be presented with a menu of options:
 
----
+```
+Welcome to LabMateAI!
+Please select an option:
+1. Recommend tools similar to a specific tool
+2. Recommend tools in a specific category
+3. Search for tools by keyword
+4. Exit
+Enter your choice (1-4):
+```
 
-## Command Line Interface (CLI) Usage
-
-The **LabMate** CLI accepts a number of arguments to request different types of recommendations. Below are the options available:
-
-### Basic Syntax
-
-\`\`\`bash
-python cli.py [OPTIONS]
-\`\`\`
-
-### Options
-
-| Option            | Argument      | Description                                                |
-|-------------------|---------------|------------------------------------------------------------|
-| \`-t\`, \`--tool\`    | TOOL_NAME     | Recommend tools similar to the specified tool.              |
-| \`-c\`, \`--category\`| CATEGORY_NAME | Recommend tools from the specified category.                |
-| \`-s\`, \`--search\`  | KEYWORD       | Search for tools using a keyword.                          |
-| \`-n\`, \`--num\`     | NUMBER        | Specify the number of recommendations to return (default 5).|
-| \`-H\`, \`--help\`    | None          | Display the help message with available commands.           |
+- **Enter the number corresponding to your choice** and press **Enter**.
+- Follow the prompts to input additional information as required.
 
 ---
 
-## Recommendation Types
+## Features and Commands
 
-**LabMate** supports several types of recommendations:
+### 1. Tool Similarity Recommendations
 
-### 1. **Similar Tool Recommendations**:
-   - Provides recommendations based on a specific tool.
-   - Example: You can ask **LabMate** to recommend tools similar to **BLAST**.
+**Purpose**: Find tools that are similar to a specific tool you already use.
 
-### 2. **Category-based Recommendations**:
-   - Provides recommendations of tools from a specific category.
-   - Example: You can ask for tools in the **Genomics** category.
+**Steps**:
 
-### 3. **Keyword-based Search**:
-   - Provides recommendations based on a search keyword.
-   - Example: Searching for tools related to **RNA**.
+1. **Select Option 1**: Enter `1` at the main menu and press **Enter**.
+2. **Enter the Tool Name**: When prompted, type the name of the tool (e.g., `BLAST`) and press **Enter**.
+3. **Specify Number of Recommendations**: Enter the number of recommendations you want (default is 5).
+4. **View Recommendations**: LabMateAI will display a list of similar tools.
 
----
+**Example**:
 
-## Example Commands
+```
+Enter the name of the tool you are using:
+> BLAST
+Enter the number of recommendations you would like (default is 5):
+> 3
+Here are 3 tools similar to BLAST:
+1. Clustal Omega - A tool for multiple sequence alignment.
+2. MAFFT - A fast multiple sequence alignment program.
+3. MUSCLE - Advanced software for multiple sequence alignment.
+```
 
-Here are some examples of how you can use **LabMate** from the command line:
+### 2. Category-Based Recommendations
 
-### 1. Get Recommendations Based on a Tool
+**Purpose**: Discover tools within a specific scientific category.
 
-\`\`\`bash
-python cli.py --tool "FastQC" --num 3
-\`\`\`
+**Steps**:
 
-This command will recommend 3 tools that are similar to **FastQC**.
+1. **Select Option 2**: Enter `2` at the main menu and press **Enter**.
+2. **Enter the Category Name**: Type the name of the category (e.g., `Genomics`) and press **Enter**.
+3. **View Tools in Category**: LabMateAI will display a list of tools within that category.
 
-### 2. Get Recommendations for a Category
+**Example**:
 
-\`\`\`bash
-python cli.py --category "Genomics"
-\`\`\`
+```
+Enter the category you are interested in:
+> Genomics
+Here are tools in the Genomics category:
+1. BWA - A software package for mapping low-divergent sequences.
+2. Bowtie2 - A fast and sensitive gapped read aligner.
+3. HISAT2 - A fast and sensitive alignment program for mapping next-generation sequencing reads.
+...
+```
 
-This command will recommend all the tools available in the **Genomics** category.
+### 3. Keyword-Based Search
 
-### 3. Search for Tools Using a Keyword
+**Purpose**: Search for tools based on keywords related to your research.
 
-\`\`\`bash
-python cli.py --search "RNA"
-\`\`\`
+**Steps**:
 
-This command will search for tools related to **RNA** and display relevant recommendations.
+1. **Select Option 3**: Enter `3` at the main menu and press **Enter**.
+2. **Enter the Keyword**: Type your keyword (e.g., `RNA-seq`) and press **Enter**.
+3. **View Search Results**: LabMateAI will display tools that match your keyword.
 
-### 4. Display Help Message
+**Example**:
 
-\`\`\`bash
-python cli.py --help
-\`\`\`
-
-This command will display the help message listing all available commands and options.
-
----
-
-## Running Tests
-
-The **LabMate** system includes several unit tests to ensure everything works as expected. You can run these tests using the \`unittest\` or \`pytest\` frameworks.
-
-### 1. Running All Tests with \`unittest\`
-
-\`\`\`bash
-python -m unittest discover -s tests
-\`\`\`
-
-### 2. Running Tests with \`pytest\`
-
-If you're using \`pytest\`, run the following:
-
-\`\`\`bash
-pytest tests/
-\`\`\`
-
-This will run all the test files inside the \`tests/\` directory.
+```
+Enter the keyword to search for tools:
+> RNA-seq
+Tools matching your search:
+1. DESeq2 - Differential gene expression analysis based on the negative binomial distribution.
+2. EdgeR - Empirical analysis of digital gene expression data in R.
+3. Kallisto - A program for quantifying abundances of transcripts from RNA-Seq data.
+...
+```
 
 ---
 
-## Development
+## Advanced Usage
 
-If you want to contribute to the development of **LabMate** or modify the system, here's a brief guide on the main components:
+LabMateAI is designed to be straightforward, but here are some advanced tips:
 
-### 1. **Recommender**:
-   - Located in \`recommender.py\`. This module handles tool recommendations, whether they are based on similarity, category, or keyword search.
-
-### 2. **Queue**:
-   - Located in \`queue.py\`. This module handles request queue management, ensuring that multiple user inputs are processed in sequence.
-
-### 3. **CLI**:
-   - Located in \`cli.py\`. This module handles the command-line interface, parsing user inputs and sending requests to the core system.
-
-### 4. **Core**:
-   - Located in \`core.py\`. The central orchestrator that connects the CLI, queue, and recommender to ensure smooth functioning of the system.
-
-### 5. **Tree and Graph**:
-   - Located in \`tree.py\` and \`graph.py\`. These modules handle the hierarchical (tree) and relational (graph) structures for managing tool relationships and categories.
+- **Partial Tool Names**: You can enter partial tool names, and LabMateAI will attempt to find the closest match.
+- **Case Insensitive**: Inputs are not case-sensitive, so `blast` and `BLAST` are treated the same.
+- **Abbreviations**: Common abbreviations may be recognized (e.g., `NGS` for Next-Generation Sequencing).
 
 ---
 
-## Contact Information
+## Tips and Tricks
 
-If you encounter any issues or have questions, feel free to contact me at:
-
-- **GitHub**: [github.com/RLTree/LabMate](https://github.com/RLTree/LabMate)
+- **Explore New Categories**: Don't hesitate to explore categories you're less familiar with; you might discover useful tools.
+- **Combine Keywords**: Use general keywords to get broader results (e.g., `alignment`, `visualization`).
+- **Stay Updated**: LabMateAI's tool database is regularly updated. Ensure you have the latest version installed.
 
 ---
 
-Thank you for using **LabMate**! Happy researching!
+## FAQ
+
+### Q1: **I can't find a tool I'm looking for. What should I do?**
+
+**A**: Try using different variations of the tool's name or check for spelling errors. If the tool is still not found, consider suggesting it for inclusion by contacting us.
+
+### Q2: **How often is the tool database updated?**
+
+**A**: We aim to update the database regularly. Check for updates by ensuring you have the latest version of LabMateAI installed:
+
+```bash
+pip install --upgrade labmateai
+```
+
+### Q3: **Can I contribute to LabMateAI's tool database?**
+
+**A**: Yes! Contributions are welcome. Please refer to the [Contributing Guide](CONTRIBUTING.md) for instructions on how to contribute.
+
+---
+
+## Troubleshooting
+
+### Issue: **LabMateAI command not found**
+
+**Solution**: Ensure that the installation was successful. If using a virtual environment, make sure it's activated. Reinstall LabMateAI if necessary.
+
+```bash
+pip install labmateai
+```
+
+### Issue: **No recommendations are displayed**
+
+**Solution**: Verify your input for typos or try using more general terms. If the problem persists, contact support.
+
+### Issue: **Error messages during execution**
+
+**Solution**: Note the error message and check the [FAQ](#faq) for possible solutions. If unresolved, consider reinstalling or reaching out to support.
+
+---
+
+## Contact Support
+
+If you encounter any issues or have questions not covered in this guide, please contact us:
+
+- **Email**: [tnoblin@health.ucsd.edu](mailto:tnoblin@health.ucsd.edu)
+- **GitHub Issues**: Open an issue on the [LabMateAI repository](https://github.com/RLTree/LabMateAI/issues)

@@ -1,0 +1,11 @@
+# Core requirements
+networkx==2.8.8
+numpy>=1.18.0
+prompt_toolkit>=3.0.0
+
+# Testing dependencies
+pytest==7.4.0
+pytest-mock==3.11.1
+
+# Linting and code style (optional, but recommended)
+flake8==6.1.0

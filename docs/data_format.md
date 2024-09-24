@@ -1,7 +1,7 @@
 
-# **LabMate Data Format Guide**
+# **LabMateAI Data Format Guide**
 
-This document provides an overview of the data format used by **LabMate** for storing and managing scientific tools. The main data file is `tools.json`, which contains a structured list of tools along with their attributes such as name, category, features, cost, and description.
+This document provides an overview of the data format used by **LabMateAI** for storing and managing scientific tools. The main data file is `tools.json`, which contains a structured list of tools along with their attributes such as name, category, features, cost, and description.
 
 ---
 
@@ -92,7 +92,7 @@ In this example:
 
 ## Adding New Tools
 
-To add a new tool to the **LabMate** recommendation system, follow these steps:
+To add a new tool to the **LabMateAI** recommendation system, follow these steps:
 
 ### 1. Open `tools.json`
 
@@ -181,4 +181,4 @@ After:
 
 ---
 
-By following this guide, you’ll be able to add, update, or remove scientific tools from **LabMate**’s data set. The format is flexible, allowing you to expand the system with additional tools and categories as needed.
+By following this guide, you’ll be able to add, update, or remove scientific tools from **LabMateAI**’s data set. The format is flexible, allowing you to expand the system with additional tools and categories as needed.
