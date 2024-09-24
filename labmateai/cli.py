@@ -129,7 +129,7 @@ def main():
     """
     Main entry point for running the CLI.
     """
-    tools = load_tools_from_json('../data/tools.json')
+    tools = load_tools_from_json()
 
     # Initialize and start the CLI
     cli = CLI(tools)

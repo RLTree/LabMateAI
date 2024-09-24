@@ -1,9 +1,9 @@
 import json
-import csv
+import importlib.resources
 from .tool import Tool
 
 
-def load_tools_from_json(file_path):
+def load_tools_from_json():
     """
     Loads tools from a JSON file.
 
@@ -14,21 +14,19 @@ def load_tools_from_json(file_path):
         list: A list of Tool instances.
     """
 
+    with importlib.resources.open_text('labmateai.data', 'tools.json') as file:
+        data = json.load(file)
     tools = []
-    with open(file_path, 'r', encoding='utf-8') as file:
-        tools_data = json.load(file)
-
-    for tool_data in tools_data:
+    for item in data:
         tool = Tool(
-            name=tool_data['name'],
-            category=tool_data['category'],
-            features=tool_data['features'],
-            cost=tool_data['cost'],
-            description=tool_data.get('description'),
-            url=tool_data.get('url')
+            name=item.get('name'),
+            category=item.get('category'),
+            features=item.get('features', []),
+            cost=item.get('cost'),
+            description=item.get('description'),
+            url=item.get('url')
         )
         tools.append(tool)
-
     return tools
 
 
