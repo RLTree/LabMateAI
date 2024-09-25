@@ -86,7 +86,7 @@ class Recommender:
         try:
             recommendations = self.tree.get_tools_in_category(category_name)
         except ValueError as e:
-            raise ValueError(str(e))
+            raise ValueError(str(e)) from e
         unique_recommendations = []
         seen = set()
         for tool in recommendations:
