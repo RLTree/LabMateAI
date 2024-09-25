@@ -1,4 +1,11 @@
+# labmateai/data_loader.py
+
+"""
+This module contains functions for loading tool data from JSON and CSV files.
+"""
+
 import json
+import csv
 import importlib.resources
 from .tool import Tool
 
@@ -6,9 +13,6 @@ from .tool import Tool
 def load_tools_from_json():
     """
     Loads tools from a JSON file.
-
-    Args:
-        file_path (str): The path to the JSON file containing tool data.
 
     Returns:
         list: A list of Tool instances.
@@ -18,13 +22,16 @@ def load_tools_from_json():
         data = json.load(file)
     tools = []
     for item in data:
+        # Access required fields directly to ensure KeyError is raised if missing
         tool = Tool(
-            name=item.get('name'),
-            category=item.get('category'),
+            name=item['name'],
+            category=item['category'],
             features=item.get('features', []),
-            cost=item.get('cost'),
-            description=item.get('description'),
-            url=item.get('url')
+            cost=item['cost'],
+            description=item['description'],
+            url=item['url'],
+            platform=item['platform'],
+            language=item['language']
         )
         tools.append(tool)
     return tools
@@ -42,17 +49,43 @@ def load_tools_from_csv(file_path):
     """
 
     tools = []
+    required_fields = ['name', 'category', 'features',
+                       'cost', 'description', 'url', 'platform', 'language']
     with open(file_path, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        for row in reader:
+
+        # Check if CSV has headers
+        if reader.fieldnames is None:
+            raise KeyError("CSV file is missing header.")
+
+        # Check for missing required fields in headers
+        missing_fields = [
+            field for field in required_fields if field not in reader.fieldnames]
+        if missing_fields:
+            raise KeyError(
+                f"CSV file is missing required fields: {', '.join(missing_fields)}.")
+
+        # start=2 to account for header
+        for row_num, row in enumerate(reader, start=2):
+            # Validate presence and non-emptiness of required fields
+            for field in required_fields:
+                value = row.get(field)
+                if value is None or not value.strip():
+                    raise KeyError(
+                        f"Missing or empty required field '{field}' in row {row_num}.")
+
+            # Create Tool instance
             tool = Tool(
                 name=row['name'],
                 category=row['category'],
-                # Assuming features are semicolon-separated
-                features=row['features'].split(';'),
+                # Assuming features are semicolon-separated; handle empty features gracefully
+                features=row['features'].split(
+                    ';') if row['features'].strip() else [],
                 cost=row['cost'],
-                description=row.get('description'),
-                url=row.get('url')
+                description=row['description'],
+                url=row['url'],
+                platform=row['platform'],
+                language=row['language']
             )
             tools.append(tool)
 

@@ -1,3 +1,5 @@
+# graph.py
+
 """
 graph.py
 
@@ -22,40 +24,108 @@ class Graph:
     Supports directed and undirected graphs.
 
     Attributes:
-        graph_dict (dict): Edges are keys and tools are values.
-        directed (bool): A flag indicating whether the graph is directed or undirected.
+        adj_list (dict): Adjacency list representing the graph. Keys are Tool instances,
+                         and values are lists of tuples (neighbor Tool, weight).
     """
 
     def __init__(self):
         """
         Initialize the graph.
         """
-        self.graph_dict = {}
+        self.adj_list = {}
 
     def add_node(self, tool):
         """
         Add a tool (node) to the graph.
+
+        Args:
+            tool (Tool): The tool to add.
         """
         if isinstance(tool, Tool):
-            if tool not in self.graph_dict:
-                self.graph_dict[tool] = []
+            if tool not in self.adj_list:
+                self.adj_list[tool] = []
 
     def add_edge(self, tool1, tool2, weight=0):
         """
         Add an edge (connection) between two tools in the graph.
+
+        Args:
+            tool1 (Tool): The first tool.
+            tool2 (Tool): The second tool.
+            weight (float): The weight of the edge.
         """
-        self.graph_dict[tool1].append((tool2, weight))
-        self.graph_dict[tool2].append((tool1, weight))
+        if not any(neighbor == tool2 for neighbor, _ in self.adj_list[tool1]):
+            self.adj_list[tool1].append((tool2, weight))
+        if not any(neighbor == tool1 for neighbor, _ in self.adj_list[tool2]):
+            self.adj_list[tool2].append((tool1, weight))
+
+    def remove_edge(self, tool1, tool2):
+        """
+        Remove an edge between two tools in the graph.
+
+        Args:
+            tool1 (Tool): The first tool.
+            tool2 (Tool): The second tool.
+
+        Raises:
+            ValueError: If the edge does not exist.
+        """
+        if tool1 in self.adj_list and tool2 in self.adj_list:
+            original_length = len(self.adj_list[tool1])
+            self.adj_list[tool1] = [
+                (neighbor, weight) for neighbor, weight in self.adj_list[tool1] if neighbor != tool2
+            ]
+            self.adj_list[tool2] = [
+                (neighbor, weight) for neighbor, weight in self.adj_list[tool2] if neighbor != tool1
+            ]
+            if len(self.adj_list[tool1]) == original_length:
+                raise ValueError(
+                    f"No edge exists between '{tool1.name}' and '{tool2.name}'.")
+
+    def remove_tool(self, tool):
+        """
+        Remove a tool (node) from the graph, along with all its edges.
+
+        Args:
+            tool (Tool): The tool to remove.
+
+        Raises:
+            KeyError: If the tool does not exist in the graph.
+        """
+        if tool not in self.adj_list:
+            raise KeyError(f"Tool '{tool.name}' does not exist in the graph.")
+
+        # Remove the tool from all neighbors' adjacency lists
+        for neighbor, _ in self.adj_list[tool]:
+            self.adj_list[neighbor] = [
+                (n, w) for n, w in self.adj_list[neighbor] if n != tool
+            ]
+
+        # Remove the tool from the graph
+        del self.adj_list[tool]
 
     def get_neighbors(self, tool):
         """
         Get the neighbors of a given tool.
+
+        Args:
+            tool (Tool): The tool whose neighbors are to be retrieved.
+
+        Returns:
+            list: A list of tuples (neighbor Tool, weight).
         """
-        return self.graph_dict.get(tool, [])
+        return self.adj_list.get(tool, [])
 
     def calculate_simularity(self, tool1, tool2):
         """
         Calculate the similarity between two tools based on their attributes.
+
+        Args:
+            tool1 (Tool): The first tool.
+            tool2 (Tool): The second tool.
+
+        Returns:
+            float: The similarity score.
         """
         similarity_score = 0
         CATEGORY_WEIGHT = 1.0
@@ -73,10 +143,6 @@ class Graph:
 
         if tool1.cost.lower() == tool2.cost.lower():
             similarity_score += COST_WEIGHT
-
-        # Debugging: Print the similarity score
-        print(
-            f"Similarity between {tool1.name} and {tool2.name}: {similarity_score}")
 
         return similarity_score
 
@@ -102,33 +168,27 @@ class Graph:
                         dissimilarity = 1.0 - normalized_similarity
                         self.add_edge(tool1, tool2, dissimilarity)
 
-                        # Debugging: Print the edges being created
-                        print(
-                            f"Edge created between {tool1.name} and {tool2.name} with dissimilarity {dissimilarity}")
-
-        # Debugging: Print the graph structure after building it
-        print("Graph Structure:")
-        for tool, neighbors in self.graph_dict.items():
-            print(
-                f"{tool.name}: {[neighbor.name for neighbor, weight in neighbors]}")
-
     def dijkstra(self, start_tool):
         """
         Implement Dijkstra's algorithm to find the shortest path from start tool to all other tools.
 
         Args:
-            start_tool (str): The value of the starting tool (node) for the algorithm.
+            start_tool (Tool): The starting tool for the algorithm.
 
         Returns:
             dict: A dictionary containing the shortest distances from start tool to each other tool.
+
+        Raises:
+            ValueError: If the start_tool is not in the graph.
         """
-        distances = {tool: inf for tool in self.graph_dict}
+        if start_tool not in self.adj_list:
+            raise ValueError(
+                f"Start tool '{start_tool.name}' not found in the graph.")
+
+        distances = {tool: inf for tool in self.adj_list}
         distances[start_tool] = 0
         counter = count()
         tools_to_explore = [(0, next(counter), start_tool)]
-
-        # Debugging: Print initial distances
-        print(f"Starting Dijkstra from {start_tool.name}...")
 
         while tools_to_explore:
             current_distance, _, current_tool = heappop(tools_to_explore)
@@ -139,10 +199,6 @@ class Graph:
                     distances[neighbor] = new_distance
                     heappush(tools_to_explore,
                              (new_distance, next(counter), neighbor))
-
-        # Debugging Print final distances
-        print("Dijkstra distances:", {
-              tool.name: dist for tool, dist in distances.items()})
 
         return distances
 
@@ -156,12 +212,20 @@ class Graph:
 
         Returns:
             list: A list of the most relevant tools.
+
+        Raises:
+            ValueError: If the start_tool is not in the graph.
         """
 
-        # Run Dijkstra's algorithm to get the "distances" (similarity scores)
+        # Check if start_tool exists in the graph
+        if start_tool not in self.adj_list:
+            raise ValueError(
+                f"Start tool '{start_tool.name}' not found in the graph.")
+
+        # Run Dijkstra's algorithm to get the "distances" (dissimilarity scores)
         distances = self.dijkstra(start_tool)
 
-        # Sort tools by their distance (similarity) to the start tool
+        # Sort tools by their distance (dissimilarity) to the start tool
         relevant_tools = sorted(distances.items(), key=lambda x: x[1])
 
         # Exclude the starting tool from the recommendations
@@ -180,8 +244,10 @@ class Graph:
                  and its connected neighbors with the respective weights.
         """
         graph_repr = ""
-        for tool, neighbors in self.graph_dict.items():
+        for tool, neighbors in self.adj_list.items():
             neighbor_str = ", ".join(
-                [f"{neighbor.name} (weight: {weight})" for neighbor, weight in neighbors])
+                [f"{neighbor.name} (weight: {weight})" for neighbor,
+                 weight in neighbors]
+            )
             graph_repr += f"{tool.name}: [{neighbor_str}]\n"
         return graph_repr

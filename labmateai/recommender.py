@@ -8,7 +8,7 @@ from .tree import ToolTree
 
 class Recommender:
     """
-    A class that integrates the graph and tree structures to recommend tools based input.
+    A class that integrates the graph and tree structures to recommend tools based on input.
     """
 
     def __init__(self, tools):
@@ -22,9 +22,11 @@ class Recommender:
         self.graph = Graph()
         self.tree = ToolTree()
         self.tools = tools
+        self.tool_names = {tool.name for tool in tools}
         self.build_recommendation_system()
 
-        print(f"Loaded tools: {self.tools}")
+        # Enhanced print for clarity
+        print(f"Loaded tools: {[tool.name for tool in self.tools]}")
 
     def build_recommendation_system(self):
         """
@@ -46,7 +48,9 @@ class Recommender:
             list: A list of recommended tools.
         """
 
-        # Retrieve recommendations (tool names) from the graph
+        if tool_name not in self.tool_names:
+            raise ValueError(f"Tool '{tool_name}' not found.")
+
         selected_tool = next(
             (tool for tool in self.tools if tool.name == tool_name), None)
 
@@ -54,7 +58,20 @@ class Recommender:
             print(f"Tool '{tool_name}' not found.")
             return []
 
-        return self.graph.find_most_relevant_tools(selected_tool, num_recommendations)
+        recommendations = self.graph.find_most_relevant_tools(
+            selected_tool, num_recommendations)
+
+        unique_recommendations = []
+        seen = set()
+
+        for tool in recommendations:
+            if tool.name != tool_name and tool.name not in seen:
+                unique_recommendations.append(tool)
+                seen.add(tool.name)
+            if len(unique_recommendations) >= num_recommendations:
+                break
+
+        return unique_recommendations
 
     def recommend_tools_in_category(self, category_name):
         """
@@ -66,8 +83,17 @@ class Recommender:
         Returns:
             list: A list of recommended tools in the specified category.
         """
-        recommendations = self.tree.get_tools_in_category(category_name)
-        return recommendations
+        try:
+            recommendations = self.tree.get_tools_in_category(category_name)
+        except ValueError as e:
+            raise ValueError(str(e))
+        unique_recommendations = []
+        seen = set()
+        for tool in recommendations:
+            if tool.name not in seen:
+                unique_recommendations.append(tool)
+                seen.add(tool.name)
+        return unique_recommendations
 
     def search_and_recommend(self, keyword):
         """
@@ -81,7 +107,16 @@ class Recommender:
         """
 
         recommendations = self.tree.search_tools(keyword)
-        return recommendations
+
+        unique_recommendations = []
+        seen = set()
+
+        for tool in recommendations:
+            if tool.name not in seen:
+                unique_recommendations.append(tool)
+                seen.add(tool.name)
+
+        return unique_recommendations
 
     def recommend(self, tool_name=None, category_name=None, keyword=None, num_recommendations=5):
         """
@@ -114,6 +149,8 @@ class Recommender:
         Args:
             recommendations (list): A list of recommended tools to display.
         """
+
+        print("\nRecommended Tools:")
         if not recommendations:
             print("No recommendations found.")
         else:
