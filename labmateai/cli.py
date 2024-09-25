@@ -1,6 +1,8 @@
 # labmateai/cli.py
 
 import sys
+from labmateai.recommender import Recommender
+from labmateai.data_loader import load_tools_from_json
 
 
 class CLI:
@@ -102,3 +104,18 @@ class CLI:
             print("")  # Add an empty line for better readability
         else:
             print(f"No tools found matching keyword '{keyword}'.\n")
+
+
+def main():
+    """
+    The main function for the LabMate CLI.
+    """
+    # Initialize the Recommender and CLI
+    tools = load_tools_from_json()
+    recommender = Recommender(tools)
+    cli = CLI(recommender)
+    cli.start()
+
+
+if __name__ == "__main__":
+    main()
