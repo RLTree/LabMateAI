@@ -4,13 +4,10 @@
 Unit tests for the data_loader module.
 """
 
-import pytest
-from unittest.mock import mock_open, patch
-from labmateai.data_loader import load_tools_from_json, load_tools_from_csv
-from labmateai.tool import Tool
 import json
-import csv
-from io import StringIO
+import pytest
+from ..data_loader import load_tools_from_json, load_tools_from_csv
+from ..tool import Tool
 
 
 # Define sample JSON data for testing

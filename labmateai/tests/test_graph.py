@@ -4,10 +4,10 @@
 Unit tests for the graph module.
 """
 
+from math import inf
 import pytest
-from math import inf  # Import 'inf' for use in tests
-from labmateai.graph import Graph
-from labmateai.tool import Tool
+from ..graph import Graph
+from ..tool import Tool
 
 
 @pytest.fixture

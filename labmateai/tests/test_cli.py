@@ -6,9 +6,9 @@ Unit tests for the CLI class.
 
 import pytest
 from unittest.mock import patch
-from labmateai.cli import CLI
-from labmateai.tool import Tool
-from labmateai.recommender import Recommender
+from ..cli import CLI
+from ..tool import Tool
+from ..recommender import Recommender
 
 
 # Define sample tools for testing
