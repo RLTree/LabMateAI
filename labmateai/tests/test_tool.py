@@ -5,7 +5,7 @@ Unit tests for the Tool class.
 """
 
 import pytest
-from ..tool import Tool
+from labmateai.tool import Tool
 
 
 @pytest.fixture

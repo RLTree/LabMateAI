@@ -6,8 +6,8 @@ Unit tests for the graph module.
 
 from math import inf
 import pytest
-from ..graph import Graph
-from ..tool import Tool
+from labmateai.graph import Graph
+from labmateai.tool import Tool
 
 
 @pytest.fixture

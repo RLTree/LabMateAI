@@ -6,8 +6,8 @@ Unit tests for the data_loader module.
 
 import json
 import pytest
-from ..data_loader import load_tools_from_json, load_tools_from_csv
-from ..tool import Tool
+from labmateai.data_loader import load_tools_from_json, load_tools_from_csv
+from labmateai.tool import Tool
 
 
 # Define sample JSON data for testing

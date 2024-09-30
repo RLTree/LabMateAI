@@ -5,8 +5,8 @@ Unit tests for the ToolTree class using pytest.
 """
 
 import pytest
-from ..tree import ToolTree, TreeNode
-from ..tool import Tool
+from labmateai.tree import ToolTree, TreeNode
+from labmateai.tool import Tool
 
 
 # Define sample tools for testing

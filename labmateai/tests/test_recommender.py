@@ -5,10 +5,10 @@ Unit tests for the Recommender class using pytest.
 """
 
 import pytest
-from ..recommender import Recommender
-from ..tool import Tool
-from ..graph import Graph
-from ..tree import ToolTree
+from labmateai.recommender import Recommender
+from labmateai.tool import Tool
+from labmateai.graph import Graph
+from labmateai.tree import ToolTree
 
 
 # Define sample tools for testing
