@@ -23,6 +23,7 @@ var/
 .installed.cfg
 *.egg
 MANIFEST
+test_env/
 
 # PyInstaller
 *.spec
