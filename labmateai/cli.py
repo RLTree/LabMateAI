@@ -1,8 +1,17 @@
 # labmateai/cli.py
+"""
+This module provides a command-line interface (CLI) for LabMate, a tool recommendation system.
+
+Classes:
+    CLI: A class to handle the command-line interface for LabMate.
+
+Functions:
+    main: The main function for the LabMate CLI.
+"""
 
 import sys
-from labmateai.recommender import Recommender
-from labmateai.data_loader import load_tools_from_json
+from .recommender import Recommender
+from .data_loader import load_tools_from_json
 
 
 class CLI:
