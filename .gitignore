@@ -130,6 +130,8 @@ htmlcov/
 
 # Ignore data files
 labmateai/data/*.json
+labmateai/data/*.csv
+labmateai/data/generate_sample_data.py
 
 # Exclude sensitive files
 .vscode/settings.json
