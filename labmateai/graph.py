@@ -1,8 +1,6 @@
 # graph.py
 
 """
-graph.py
-
 This module provides the Graph class, which implements a graph data structure
 to model relationships between tools. It supports both directed and undirected graphs
 and includes methods for adding tools, finding neighbors, performing graph traversal
@@ -12,9 +10,9 @@ Classes:
     Graph: A class representing a graph of tools, supporting various graph operations.
 """
 
-from math import inf
-from itertools import count
-from heapq import heappush, heappop
+import networkx as nx
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from .tool import Tool
 
 
@@ -22,17 +20,16 @@ class Graph:
     """
     Represent a graph where nodes are tools and edges connect similar tools in the graph.
     Supports directed and undirected graphs.
-
-    Attributes:
-        adj_list (dict): Adjacency list representing the graph. Keys are Tool instances,
-                         and values are lists of tuples (neighbor Tool, weight).
     """
 
-    def __init__(self):
+    def __init__(self, tools):
         """
         Initialize the graph.
         """
-        self.adj_list = {}
+        self.tools = tools
+        self.graph = nx.Graph()
+        if tools:  # Only build the graph if tools are provided
+            self.build_graph(tools)
 
     def add_node(self, tool):
         """
@@ -42,198 +39,115 @@ class Graph:
             tool (Tool): The tool to add.
         """
         if isinstance(tool, Tool):
-            if tool not in self.adj_list:
-                self.adj_list[tool] = []
+            if tool not in self.graph:
+                self.graph.add_node(tool)
 
-    def add_edge(self, tool1, tool2, weight=0):
+    def add_edge(self, tool1, tool2, similarity=0.0):
         """
         Add an edge (connection) between two tools in the graph.
 
         Args:
             tool1 (Tool): The first tool.
             tool2 (Tool): The second tool.
-            weight (float): The weight of the edge.
+            similarity (float): The similarity score between the tools.
         """
-        if not any(neighbor == tool2 for neighbor, _ in self.adj_list[tool1]):
-            self.adj_list[tool1].append((tool2, weight))
-        if not any(neighbor == tool1 for neighbor, _ in self.adj_list[tool2]):
-            self.adj_list[tool2].append((tool1, weight))
-
-    def remove_edge(self, tool1, tool2):
-        """
-        Remove an edge between two tools in the graph.
-
-        Args:
-            tool1 (Tool): The first tool.
-            tool2 (Tool): The second tool.
-
-        Raises:
-            ValueError: If the edge does not exist.
-        """
-        if tool1 in self.adj_list and tool2 in self.adj_list:
-            original_length = len(self.adj_list[tool1])
-            self.adj_list[tool1] = [
-                (neighbor, weight) for neighbor, weight in self.adj_list[tool1] if neighbor != tool2
-            ]
-            self.adj_list[tool2] = [
-                (neighbor, weight) for neighbor, weight in self.adj_list[tool2] if neighbor != tool1
-            ]
-            if len(self.adj_list[tool1]) == original_length:
-                raise ValueError(
-                    f"No edge exists between '{tool1.name}' and '{tool2.name}'.")
-
-    def remove_tool(self, tool):
-        """
-        Remove a tool (node) from the graph, along with all its edges.
-
-        Args:
-            tool (Tool): The tool to remove.
-
-        Raises:
-            KeyError: If the tool does not exist in the graph.
-        """
-        if tool not in self.adj_list:
-            raise KeyError(f"Tool '{tool.name}' does not exist in the graph.")
-
-        # Remove the tool from all neighbors' adjacency lists
-        for neighbor, _ in self.adj_list[tool]:
-            self.adj_list[neighbor] = [
-                (n, w) for n, w in self.adj_list[neighbor] if n != tool
-            ]
-
-        # Remove the tool from the graph
-        del self.adj_list[tool]
-
-    def get_neighbors(self, tool):
-        """
-        Get the neighbors of a given tool.
-
-        Args:
-            tool (Tool): The tool whose neighbors are to be retrieved.
-
-        Returns:
-            list: A list of tuples (neighbor Tool, weight).
-        """
-        return self.adj_list.get(tool, [])
-
-    def calculate_simularity(self, tool1, tool2):
-        """
-        Calculate the similarity between two tools based on their attributes.
-
-        Args:
-            tool1 (Tool): The first tool.
-            tool2 (Tool): The second tool.
-
-        Returns:
-            float: The similarity score.
-        """
-        similarity_score = 0
-        CATEGORY_WEIGHT = 1.0
-        FEATURE_WEIGHT = 2.0
-        COST_WEIGHT = 0.2
-
-        if tool1.category == tool2.category:
-            similarity_score += CATEGORY_WEIGHT
-
-        shared_features = set(tool1.features).intersection(set(tool2.features))
-        total_features = set(tool1.features).union(set(tool2.features))
-        if total_features:
-            feature_similarity = len(shared_features) / len(total_features)
-            similarity_score += feature_similarity * FEATURE_WEIGHT
-
-        if tool1.cost.lower() == tool2.cost.lower():
-            similarity_score += COST_WEIGHT
-
-        return similarity_score
+        if not self.graph.has_edge(tool1, tool2):
+            self.graph.add_edge(tool1, tool2, weight=similarity)
 
     def build_graph(self, tools):
         """
-        Build the graph from a list of tools.
+        Build the graph from a list of tools using TF-IDF and cosine similarity.
 
         Args:
             tools (list): A list of Tool instances to be added to the graph.
         """
-        MAX_SIMILARITY_SCORE = 3.2
-        SIMILARITY_THRESHOLD = 0.3
-
+        # Add all tools as nodes
         for tool in tools:
             self.add_node(tool)
 
-        for i, tool1 in enumerate(tools):
-            for tool2 in tools[i + 1:]:
-                similarity = self.calculate_simularity(tool1, tool2)
-                if similarity > 0:
-                    normalized_similarity = similarity / MAX_SIMILARITY_SCORE
-                    if normalized_similarity > SIMILARITY_THRESHOLD:
-                        dissimilarity = 1.0 - normalized_similarity
-                        self.add_edge(tool1, tool2, dissimilarity)
+        # Add edges based on similarity threshold
+        SIMILARITY_THRESHOLD = 0.2  # Adjust as needed
 
-    def dijkstra(self, start_tool):
+        for i, tool1 in enumerate(tools):
+            for j, tool2 in enumerate(tools):
+                if i >= j:
+                    continue  # Avoid duplicate edges and self-loops
+                similarity = self.calculate_similarity(
+                    tool1, tool2)
+                if round(similarity, 2) >= SIMILARITY_THRESHOLD:
+                    self.add_edge(tool1, tool2, similarity)
+                # Debugging: Uncomment to print similarity values
+                print(
+                    f"Similarity between {tool1.name} and {tool2.name}: {similarity:.2f}")
+
+    def calculate_similarity(self, tool1, tool2):
         """
-        Implement Dijkstra's algorithm to find the shortest path from start tool to all other tools.
+        Calculate the similarity between two tools based on their features using TF-IDF and cosine similarity.
 
         Args:
-            start_tool (Tool): The starting tool for the algorithm.
+            tool1 (Tool): The first tool.
+            tool2 (Tool): The second tool.
 
         Returns:
-            dict: A dictionary containing the shortest distances from start tool to each other tool.
-
-        Raises:
-            ValueError: If the start_tool is not in the graph.
+            float: The similarity score between the tools.
         """
-        if start_tool not in self.adj_list:
-            raise ValueError(
-                f"Start tool '{start_tool.name}' not found in the graph.")
+        # Feature Similarity
+        vectorizer = TfidfVectorizer(stop_words='english')
+        feature_strings = [" ".join(tool1.features), " ".join(tool2.features)]
+        tfidf_matrix = vectorizer.fit_transform(feature_strings)
 
-        distances = {tool: inf for tool in self.adj_list}
-        distances[start_tool] = 0
-        counter = count()
-        tools_to_explore = [(0, next(counter), start_tool)]
+        feature_similarity = cosine_similarity(tfidf_matrix)[0, 1]
 
-        while tools_to_explore:
-            current_distance, _, current_tool = heappop(tools_to_explore)
+        # Category Similarity
+        category_similarity = 1.5 if tool1.category == tool2.category else 0.0
 
-            for neighbor, similarity in self.get_neighbors(current_tool):
-                new_distance = current_distance + similarity
-                if new_distance < distances[neighbor]:
-                    distances[neighbor] = new_distance
-                    heappush(tools_to_explore,
-                             (new_distance, next(counter), neighbor))
+        # Cost similarity
+        cost_similarity = 0.5 if tool1.cost == tool2.cost else 0.0
 
-        return distances
+        # Language similarity
+        language_similarity = 0.3 if tool1.language == tool2.language else 0.0
+
+        # Platform similarity (check if there is any overlap in platforms)
+        platform_overlap = set(tool1.platform.split(
+            ", ")) & set(tool2.platform.split(", "))
+        platform_similarity = 0.2 if platform_overlap else 0.0
+
+        # Weighted Sum of Similarities
+        total_similarity = (
+            2.0 * feature_similarity +
+            1.5 * category_similarity +
+            0.5 * cost_similarity +
+            0.3 * language_similarity +
+            0.2 * platform_similarity
+        )
+
+        # Normalize the similarity score
+        max_similarity = 2.0 + 1.5 + 0.5 + 0.3 + 0.2
+        normalized_similarity = total_similarity / max_similarity
+
+        return normalized_similarity
 
     def find_most_relevant_tools(self, start_tool, num_recommendations=5):
         """
-        Find the most relevant tools based on the specified criteria using graph traversal.
+        Find the most relevant tools based on similarity scores.
 
         Args:
             start_tool (Tool): The starting tool for the search.
             num_recommendations (int): The number of recommendations to return.
 
         Returns:
-            list: A list of the most relevant tools.
-
-        Raises:
-            ValueError: If the start_tool is not in the graph.
+            list: A list of the most relevant Tool objects.
         """
-
-        # Check if start_tool exists in the graph
-        if start_tool not in self.adj_list:
+        if start_tool not in self.graph:
             raise ValueError(
                 f"Start tool '{start_tool.name}' not found in the graph.")
 
-        # Run Dijkstra's algorithm to get the "distances" (dissimilarity scores)
-        distances = self.dijkstra(start_tool)
-
-        # Sort tools by their distance (dissimilarity) to the start tool
-        relevant_tools = sorted(distances.items(), key=lambda x: x[1])
-
-        # Exclude the starting tool from the recommendations
-        filtered_tools = [tool for tool,
-                          distance in relevant_tools if tool != start_tool]
-
-        # Return the top recommendations (up to num_recommendations)
-        return filtered_tools[:num_recommendations]
+        # Get neighbors sorted by similarity (descending order)
+        neighbors = sorted(self.graph[start_tool].items(
+        ), key=lambda x: x[1]['weight'], reverse=True)
+        recommended_tools = [neighbor for neighbor,
+                             attrs in neighbors[:num_recommendations]]
+        return recommended_tools
 
     def __repr__(self):
         """
@@ -244,10 +158,9 @@ class Graph:
                  and its connected neighbors with the respective weights.
         """
         graph_repr = ""
-        for tool, neighbors in self.adj_list.items():
+        for tool in self.graph.nodes:
+            neighbors = self.graph[tool]
             neighbor_str = ", ".join(
-                [f"{neighbor.name} (weight: {weight})" for neighbor,
-                 weight in neighbors]
-            )
+                [f"{neighbor.name} (similarity: {attrs['weight']:.2f})" for neighbor, attrs in neighbors.items()])
             graph_repr += f"{tool.name}: [{neighbor_str}]\n"
         return graph_repr

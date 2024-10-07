@@ -4,16 +4,17 @@
 Unit tests for the CLI class.
 """
 
-import pytest
 from unittest.mock import patch
-from labmateai.cli import CLI
-from labmateai.tool import Tool
+import pytest
 from labmateai.recommender import Recommender
+from labmateai.tool import Tool
+from labmateai.cli import CLI
 
 
-# Define sample tools for testing
+# Define sample tools for testing with tool_id
 SAMPLE_TOOLS = [
     Tool(
+        tool_id=119,
         name='Seurat',
         category='Single-Cell Analysis',
         features=['Single-cell RNA-seq', 'Clustering'],
@@ -24,6 +25,7 @@ SAMPLE_TOOLS = [
         platform='Cross-platform'
     ),
     Tool(
+        tool_id=337,
         name='Scanpy',
         category='Single-Cell Analysis',
         features=['Single-cell RNA-seq', 'Visualization'],
@@ -34,6 +36,7 @@ SAMPLE_TOOLS = [
         platform='Cross-platform'
     ),
     Tool(
+        tool_id=359,
         name='GenomicsToolX',
         category='Genomics',
         features=['Genome Assembly', 'Variant Calling'],
@@ -44,6 +47,7 @@ SAMPLE_TOOLS = [
         platform='Cross-platform'
     ),
     Tool(
+        tool_id=126,
         name='Bowtie',
         category='Genomics',
         features=['Sequence Alignment', 'Genome Mapping'],
@@ -54,6 +58,7 @@ SAMPLE_TOOLS = [
         platform='Cross-platform'
     ),
     Tool(
+        tool_id=360,
         name='RNAAnalyzer',
         category='RNA',
         features=['RNA-Seq Analysis', 'Differential Expression'],
@@ -67,75 +72,55 @@ SAMPLE_TOOLS = [
 
 
 @pytest.fixture
-def mock_recommender():
+def mock_cli():
     """
-    Fixture to provide a mock Recommender instance.
+    Fixture to provide a mock CLI instance.
     """
-    recommender = Recommender(tools=SAMPLE_TOOLS)
+    with patch('labmateai.recommender.Recommender') as MockRecommender:
+        mock_recommender_instance = MockRecommender.return_value
 
-    # Mock the methods to return controlled outputs
-    with patch.object(recommender, 'recommend_similar_tools') as mock_recommend_similar:
-        with patch.object(recommender, 'recommend_tools_in_category') as mock_recommend_category:
-            with patch.object(recommender, 'search_and_recommend') as mock_search:
-                # Define mock return values based on input
-                def recommend_similar_tools_side_effect(tool_name, num_recommendations):
-                    if tool_name.lower() == 'seurat':
-                        return [SAMPLE_TOOLS[1]]  # Scanpy
-                    else:
-                        raise ValueError(f"Tool '{tool_name}' not found.")
+        # Mocking the recommend methods to return controlled outputs
+        mock_recommender_instance.recommend_similar_tools.side_effect = lambda tool_name, num_recommendations: (
+            [SAMPLE_TOOLS[1]] if tool_name.lower() == 'seurat' else []
+        )
+        mock_recommender_instance.recommend_tools_in_category.side_effect = lambda category_name: (
+            [SAMPLE_TOOLS[2], SAMPLE_TOOLS[3]
+             ] if category_name.lower() == 'genomics' else []
+        )
+        mock_recommender_instance.search_and_recommend.side_effect = lambda keyword: (
+            [SAMPLE_TOOLS[0], SAMPLE_TOOLS[1], SAMPLE_TOOLS[4]
+             ] if keyword.lower() == 'rna' else []
+        )
 
-                def recommend_tools_in_category_side_effect(category_name):
-                    if category_name.lower() == 'genomics':
-                        # GenomicsToolX, Bowtie
-                        return [SAMPLE_TOOLS[2], SAMPLE_TOOLS[3]]
-                    else:
-                        return []
-
-                def search_and_recommend_side_effect(keyword):
-                    if keyword.lower() == 'rna':
-                        # Seurat, Scanpy, RNAAnalyzer
-                        return [SAMPLE_TOOLS[0], SAMPLE_TOOLS[1], SAMPLE_TOOLS[4]]
-                    else:
-                        return []
-
-                mock_recommend_similar.side_effect = recommend_similar_tools_side_effect
-                mock_recommend_category.side_effect = recommend_tools_in_category_side_effect
-                mock_search.side_effect = search_and_recommend_side_effect
-
-                yield recommender
-
-
-@pytest.fixture
-def cli_instance(mock_recommender):
-    """
-    Fixture to provide a CLI instance initialized with the mock Recommender.
-    """
-    return CLI(recommender=mock_recommender)
+        cli = CLI(recommender=mock_recommender_instance, tools=SAMPLE_TOOLS)
+        yield cli
 
 
 @pytest.mark.parametrize("input_sequence, expected_output_checks", [
     # Test Case 1: Recommend similar tools to 'Seurat'
     (
         ['1', 'Seurat', '4'],
-        ['Recommendations:', '- Scanpy:']
+        ['Recommendations:', '- Scanpy (ID: 337):']
     ),
     # Test Case 2: Recommend tools in 'Genomics' category
     (
         ['2', 'Genomics', '4'],
-        ['Recommendations:', '- GenomicsToolX:', '- Bowtie:']
+        ['Recommendations:',
+            '- GenomicsToolX (ID: 359):', '- Bowtie (ID: 126):']
     ),
     # Test Case 3: Search tools by keyword 'RNA'
     (
         ['3', 'RNA', '4'],
-        ['Recommendations:', '- Seurat:', '- Scanpy:', '- RNAAnalyzer:']
+        ['Recommendations:',
+            '- Seurat (ID: 119):', '- Scanpy (ID: 337):', '- RNAAnalyzer (ID: 360):']
     )
 ])
-def test_cli_interactive_modes(cli_instance, input_sequence, expected_output_checks, capsys):
+def test_cli_interactive_modes(mock_cli, input_sequence, expected_output_checks, capsys):
     """
     Test the interactive mode of the CLI with valid inputs.
 
     Args:
-        cli_instance: Instance of the CLI class.
+        mock_cli: Instance of the mock CLI class.
         input_sequence: List of user inputs to simulate.
         expected_output_checks: List of substrings expected to be in the output.
         capsys: Pytest fixture to capture stdout and stderr.
@@ -144,7 +129,7 @@ def test_cli_interactive_modes(cli_instance, input_sequence, expected_output_che
     with patch('sys.argv', ['cli.py']):
         # Patch 'input' to simulate user inputs
         with patch('builtins.input', side_effect=input_sequence):
-            cli_instance.start()
+            mock_cli.start()
 
     # Capture the output
     captured = capsys.readouterr()
@@ -164,7 +149,7 @@ def test_cli_interactive_modes(cli_instance, input_sequence, expected_output_che
     # Test Case 5: Recommend tools in a non-existent category
     (
         ['2', 'NonExistentCategory', '4'],
-        "No tools found in category 'NonExistentCategory'."
+        "No tools found for category 'NonExistentCategory'."
     ),
     # Test Case 6: Search tools by a non-existent keyword
     (
@@ -174,15 +159,15 @@ def test_cli_interactive_modes(cli_instance, input_sequence, expected_output_che
     # Test Case 7: Enter an invalid choice
     (
         ['5', '4'],
-        "Invalid choice. Please try again."
+        "Invalid choice. Please enter a number between 1 and 4."
     )
 ])
-def test_cli_invalid_inputs(cli_instance, input_sequence, expected_output, capsys):
+def test_cli_invalid_inputs(mock_cli, input_sequence, expected_output, capsys):
     """
     Test the interactive mode of the CLI with invalid inputs.
 
     Args:
-        cli_instance: Instance of the CLI class.
+        mock_cli: Instance of the mock CLI class.
         input_sequence: List of user inputs to simulate.
         expected_output: Substring expected to be in the output.
         capsys: Pytest fixture to capture stdout and stderr.
@@ -191,7 +176,7 @@ def test_cli_invalid_inputs(cli_instance, input_sequence, expected_output, capsy
     with patch('sys.argv', ['cli.py']):
         # Patch 'input' to simulate user inputs
         with patch('builtins.input', side_effect=input_sequence):
-            cli_instance.start()
+            mock_cli.start()
 
     # Capture the output
     captured = capsys.readouterr()

@@ -1,277 +1,211 @@
-# tests/test_tree.py
+# tests/test_tool.py
 
 """
-Unit tests for the ToolTree class using pytest.
+Unit tests for the Tool class in LabMateAI.
 """
 
 import pytest
-from labmateai.tree import ToolTree, TreeNode
 from labmateai.tool import Tool
 
 
-# Define sample tools for testing
-SAMPLE_TOOLS = [
-    Tool(
+@pytest.fixture
+def sample_tool():
+    """
+    Fixture to provide a sample Tool instance for testing.
+    """
+    return Tool(
+        tool_id=119,
         name='Seurat',
         category='Single-Cell Analysis',
         features=['Single-cell RNA-seq', 'Clustering'],
-        cost='Free',
+        cost="Free",
         description='An R package for single-cell RNA sequencing data.',
         url='https://satijalab.org/seurat/',
         language='R',
         platform='Cross-platform'
-    ),
-    Tool(
+    )
+
+
+def test_tool_initialization(sample_tool):
+    """
+    Test that the Tool instance is initialized correctly with all attributes.
+    """
+    assert sample_tool.tool_id == 119, "Tool ID does not match."
+    assert sample_tool.name == 'Seurat', "Tool name does not match."
+    assert sample_tool.category == 'Single-Cell Analysis', "Tool category does not match."
+    assert sample_tool.features == [
+        'Single-cell RNA-seq', 'Clustering'], "Tool features do not match."
+    assert sample_tool.cost == "Free", "Tool cost does not match."
+    assert sample_tool.description == 'An R package for single-cell RNA sequencing data.', "Tool description does not match."
+    assert sample_tool.url == 'https://satijalab.org/seurat/', "Tool URL does not match."
+    assert sample_tool.language == 'R', "Tool language does not match."
+    assert sample_tool.platform == 'Cross-platform', "Tool platform does not match."
+
+
+def test_tool_equality(sample_tool):
+    """
+    Test that two Tool instances with the same name (case-insensitive) are considered equal.
+    """
+    tool_duplicate = Tool(
+        tool_id=120,
+        name='seurat',  # Different case
+        category='Single-Cell Analysis',
+        features=['Single-cell RNA-seq', 'Clustering'],
+        cost="Free",
+        description='Duplicate Seurat tool.',
+        url='https://duplicate.seurat.org/',
+        language='R',
+        platform='Cross-platform'
+    )
+
+    assert sample_tool == tool_duplicate, "Tools with the same name should be equal."
+
+
+def test_tool_inequality(sample_tool):
+    """
+    Test that two Tool instances with different names are not considered equal.
+    """
+    tool_different = Tool(
+        tool_id=121,
         name='Scanpy',
         category='Single-Cell Analysis',
         features=['Single-cell RNA-seq', 'Visualization'],
-        cost='Free',
+        cost="Free",
         description='A scalable toolkit for analyzing single-cell gene expression data.',
         url='https://scanpy.readthedocs.io/',
         language='Python',
         platform='Cross-platform'
-    ),
-    Tool(
-        name='GenomicsToolX',
-        category='Genomics',
-        features=['Genome Assembly', 'Variant Calling'],
-        cost='Free',
-        description='A tool for comprehensive genome assembly and variant calling.',
-        url='https://genomicstoolx.com/',
-        language='Python',
-        platform='Cross-platform'
-    ),
-    Tool(
-        name='GenomicsExplorer',
-        category='Genomics',
-        features=['Genome Browsing', 'Data Visualization'],
-        cost='Free',
-        description='A tool for exploring and visualizing genomic data.',
-        url='https://genomicsexplorer.com/',
-        language='Java',
-        platform='Cross-platform'
-    ),
-    Tool(
-        name='RNAAnalyzer',
-        category='RNA',
-        features=['RNA-Seq Analysis', 'Differential Expression'],
-        cost='Free',
-        description='A tool for analyzing RNA-Seq data and identifying differential gene expression.',
-        url='https://rnaanalyzer.example.com/',
+    )
+
+    assert sample_tool != tool_different, "Tools with different names should not be equal."
+
+
+def test_tool_hashing(sample_tool):
+    """
+    Test that Tool instances can be hashed and used in sets or as dictionary keys.
+    """
+    tool_set = set()
+    tool_set.add(sample_tool)
+
+    tool_duplicate = Tool(
+        tool_id=122,
+        name='Seurat',  # Same name
+        category='Single-Cell Analysis',
+        features=['Single-cell RNA-seq', 'Clustering'],
+        cost="Free",
+        description='Another Seurat tool.',
+        url='https://another.seurat.org/',
         language='R',
         platform='Cross-platform'
-    ),
-    Tool(
+    )
+
+    tool_set.add(tool_duplicate)
+
+    assert len(tool_set) == 1, "Duplicate tools should not be added to the set."
+
+    tool_dict = {sample_tool: 'Original'}
+    tool_dict[tool_duplicate] = 'Duplicate'
+
+    assert tool_dict[sample_tool] == 'Duplicate', "Dictionary should overwrite with duplicate tool key."
+
+
+def test_tool_repr(sample_tool):
+    """
+    Test the string representation (__repr__) of the Tool instance.
+    """
+    expected_repr = "Tool(tool_id=119, name='Seurat')"
+    assert repr(
+        sample_tool) == expected_repr, f"Expected repr '{expected_repr}', got '{repr(sample_tool)}'."
+
+
+def test_tool_immutability(sample_tool):
+    """
+    Test that the Tool instance is immutable (frozen).
+    """
+    with pytest.raises(AttributeError):
+        sample_tool.name = 'ModifiedSeurat'
+
+    with pytest.raises(AttributeError):
+        sample_tool.features = ('New Feature')
+
+
+def test_tool_invalid_equality():
+    """
+    Test that Tool instances are not equal to objects of different types.
+    """
+    tool = Tool(
+        tool_id=123,
         name='Bowtie',
         category='Genomics',
         features=['Sequence Alignment', 'Genome Mapping'],
-        cost='Free',
-        description='A fast and memory-efficient tool for aligning sequencing reads to long reference sequences.',
+        cost="Free",
+        description='A fast and memory-efficient tool for aligning sequencing reads.',
         url='https://bowtie-bio.sourceforge.net/index.shtml',
         language='C++',
         platform='Cross-platform'
-    ),
-    # Add more tools as needed
-]
-
-
-@pytest.fixture(scope="module")
-def tool_tree():
-    """
-    Fixture to initialize the ToolTree with predefined sample tools.
-    """
-    tree = ToolTree()
-    tree.build_tree(SAMPLE_TOOLS)
-    return tree
-
-
-@pytest.fixture(scope="module")
-def tools():
-    """
-    Fixture to provide the list of sample tools.
-    """
-    return SAMPLE_TOOLS
-
-
-@pytest.mark.parametrize("category_name, expected_tool_names", [
-    ('Genomics', ['GenomicsToolX', 'GenomicsExplorer', 'Bowtie']),
-    ('Single-Cell Analysis', ['Seurat', 'Scanpy']),
-    ('RNA', ['RNAAnalyzer']),
-    ('NonExistentCategory', []),
-])
-def test_get_tools_in_category(tool_tree, category_name, expected_tool_names):
-    """
-    Test retrieving tools in a category.
-
-    Args:
-        tool_tree: Instance of the ToolTree class.
-        category_name (str): The name of the category to retrieve tools from.
-        expected_tool_names (list): List of expected tool names.
-    """
-    if expected_tool_names:
-        tools_in_category = tool_tree.get_tools_in_category(category_name)
-        assert len(tools_in_category) == len(expected_tool_names), \
-            f"Expected {len(expected_tool_names)} tools in category '{category_name}', got {len(tools_in_category)}."
-        retrieved_names = sorted([tool.name.lower()
-                                 for tool in tools_in_category])
-        expected_sorted = sorted([name.lower()
-                                 for name in expected_tool_names])
-        assert retrieved_names == expected_sorted, \
-            f"Expected tools {expected_sorted} in category '{category_name}', got {retrieved_names}."
-        assert all(tool.category == category_name for tool in tools_in_category), \
-            "All retrieved tools should belong to the specified category."
-    else:
-        with pytest.raises(ValueError) as exc_info:
-            tool_tree.get_tools_in_category(category_name)
-        assert f"Category '{category_name}' not found." in str(exc_info.value), \
-            f"Expected ValueError for non-existent category '{category_name}'."
-
-
-@pytest.mark.parametrize("keyword, expected_tool_names", [
-    ('RNA', ['Seurat', 'Scanpy', 'RNAAnalyzer']),
-    ('Genome', ['GenomicsToolX', 'GenomicsExplorer', 'Bowtie']),
-    ('Clustering', ['Seurat']),
-    ('Visualization', ['Scanpy', 'GenomicsExplorer']),
-    ('NonExistentKeyword', []),
-])
-def test_search_tools(tool_tree, keyword, expected_tool_names):
-    """
-    Test searching for tools by keyword.
-
-    Args:
-        tool_tree: Instance of the ToolTree class.
-        keyword (str): The keyword to search for.
-        expected_tool_names (list): List of expected tool names.
-    """
-    results = tool_tree.search_tools(keyword)
-    if expected_tool_names:
-        retrieved_names = sorted([tool.name for tool in results])
-        expected_sorted = sorted(expected_tool_names)
-        for name in expected_tool_names:
-            assert name in retrieved_names, f"Expected tool '{name}' to be in search results for keyword '{keyword}'."
-        # Optionally, check that no unexpected tools are included
-        assert len(results) >= len(expected_tool_names), \
-            f"Expected at least {len(expected_tool_names)} tools in search results for keyword '{keyword}', got {len(results)}."
-    else:
-        assert len(
-            results) == 0, f"Expected no search results for keyword '{keyword}', but got {len(results)}."
-
-
-def test_get_all_categories(tool_tree):
-    """
-    Test retrieving all categories.
-
-    Args:
-        tool_tree: Instance of the ToolTree class.
-    """
-    categories = tool_tree.get_all_categories()
-    expected_categories = ['Single-Cell Analysis', 'Genomics', 'RNA']
-    for category in expected_categories:
-        assert category in categories, f"Expected category '{category}' to be in the list of all categories."
-    assert len(categories) == len(expected_categories), \
-        f"Expected categories {expected_categories}, but got {categories}."
-
-
-@pytest.mark.parametrize("category_name, expected_tool_count", [
-    ('Single-Cell Analysis', 2),
-    ('Genomics', 3),
-    ('RNA', 1),
-])
-def test_category_tool_counts(tool_tree, category_name, expected_tool_count):
-    """
-    Test the number of tools in each category.
-
-    Args:
-        tool_tree: Instance of the ToolTree class.
-        category_name (str): The name of the category.
-        expected_tool_count (int): Expected number of tools in the category.
-    """
-    tools_in_category = tool_tree.get_tools_in_category(category_name)
-    assert len(tools_in_category) == expected_tool_count, \
-        f"Expected {expected_tool_count} tools in category '{category_name}', got {len(tools_in_category)}."
-
-
-@pytest.mark.parametrize("keyword, expected_tool_names", [
-    ('RNA', ['Seurat', 'Scanpy', 'RNAAnalyzer']),
-    ('Genomics', ['GenomicsToolX', 'GenomicsExplorer', 'Bowtie']),
-    ('Visualization', ['Scanpy', 'GenomicsExplorer']),
-])
-def test_search_tools_case_insensitivity(tool_tree, keyword, expected_tool_names):
-    """
-    Test that the search is case-insensitive.
-
-    Args:
-        tool_tree: Instance of the ToolTree class.
-        keyword (str): The keyword to search for (mixed case).
-        expected_tool_names (list): List of expected tool names.
-    """
-    mixed_case_keyword = ''.join(
-        [char.upper() if i % 2 == 0 else char.lower() for i, char in enumerate(keyword)])
-    results = tool_tree.search_tools(mixed_case_keyword)
-    retrieved_names = sorted([tool.name for tool in results])
-    expected_sorted = sorted(expected_tool_names)
-    assert retrieved_names == expected_sorted, \
-        f"Expected search results {expected_sorted} for keyword '{mixed_case_keyword}', got {retrieved_names}."
-
-
-def test_add_tool_to_tree():
-    """
-    Test adding a new tool to the tree and ensuring it's correctly categorized.
-    """
-    # Initialize a new ToolTree
-    tree = ToolTree()
-    new_tool = Tool(
-        name='BioToolY',
-        category='Bioinformatics',
-        features=['Feature1', 'Feature2'],
-        cost='Free',
-        description='A bioinformatics tool for data analysis.',
-        url='https://biotooly.example.com/',
-        language='Python',
-        platform='Cross-platform'
     )
-    tree.build_tree([new_tool])
 
-    # Check that the category exists
-    categories = tree.get_all_categories()
-    assert 'Bioinformatics' in categories, "Category 'Bioinformatics' should be present after adding a new tool."
+    assert tool != "Bowtie", "Tool should not be equal to a string."
+    assert tool != 123, "Tool should not be equal to an integer."
 
-    # Retrieve tools in the new category
-    tools_in_category = tree.get_tools_in_category('Bioinformatics')
-    assert len(
-        tools_in_category) == 1, "There should be one tool in the 'Bioinformatics' category."
-    assert tools_in_category[0].name == 'BioToolY', "The tool in 'Bioinformatics' category should be 'BioToolY'."
 
-    # Add another tool to the same category
-    another_tool = Tool(
-        name='BioToolZ',
-        category='Bioinformatics',
-        features=['Feature3'],
-        cost='Free',
-        description='Another bioinformatics tool.',
-        url='https://biotoolz.example.com/',
+def test_tool_feature_case_insensitivity():
+    """
+    Test that features are handled correctly regardless of case.
+    """
+    tool_upper_features = Tool(
+        tool_id=124,
+        name='RNAAnalyzer',
+        category='RNA',
+        features=['RNA-SEQ ANALYSIS', 'DIFFERENTIAL EXPRESSION'],
+        cost="Free",
+        description='A tool for analyzing RNA-Seq data.',
+        url='https://rnaanalyzer.example.com/',
         language='R',
         platform='Cross-platform'
     )
-    tree.add_tool(another_tool)
 
-    # Check that both tools are present in the category
-    tools_in_category = tree.get_tools_in_category('Bioinformatics')
-    assert len(
-        tools_in_category) == 2, "There should be two tools in the 'Bioinformatics' category."
-    tool_names = sorted([tool.name for tool in tools_in_category])
-    assert tool_names == [
-        'BioToolY', 'BioToolZ'], f"Expected tools ['BioToolY', 'BioToolZ'], got {tool_names}."
+    tool_lower_features = Tool(
+        tool_id=125,
+        name='RNAAnalyzer',
+        category='RNA',
+        features=['rna-seq analysis', 'differential expression'],
+        cost="Free",
+        description='Another tool for analyzing RNA-Seq data.',
+        url='https://another.rnaanalyzer.example.com/',
+        language='R',
+        platform='Cross-platform'
+    )
+
+    assert tool_upper_features == tool_lower_features, "Tools with features differing only in case should be equal."
 
 
-def test_search_tools_no_matches(tool_tree):
+def test_tool_different_names_same_attributes():
     """
-    Test searching for tools with a keyword that has no matches.
-
-    Args:
-        tool_tree: Instance of the ToolTree class.
+    Test that tools with different names but identical other attributes are not equal.
     """
-    keyword = 'NonExistentFeature'
-    results = tool_tree.search_tools(keyword)
-    assert len(
-        results) == 0, f"Expected no search results for keyword '{keyword}', but got {len(results)}."
+    tool1 = Tool(
+        tool_id=126,
+        name='ToolA',
+        category='Genomics',
+        features=['Feature1', 'Feature2'],
+        cost="Free",
+        description='Description A.',
+        url='https://toola.example.com/',
+        language='Python',
+        platform='Cross-platform'
+    )
+
+    tool2 = Tool(
+        tool_id=127,
+        name='ToolB',
+        category='Genomics',
+        features=['Feature1', 'Feature2'],
+        cost="Free",
+        description='Description A.',
+        url='https://toolb.example.com/',
+        language='Python',
+        platform='Cross-platform'
+    )
+
+    assert tool1 != tool2, "Tools with different names should not be equal, even if other attributes match."

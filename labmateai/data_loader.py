@@ -2,90 +2,159 @@
 
 """
 This module contains functions for loading tool data from JSON and CSV files.
+It ensures that each Tool instance includes a unique tool_id and handles data validation.
 """
 
 import json
 import csv
 import importlib.resources
 from .tool import Tool
+import os
 
 
-def load_tools_from_json():
+def load_tools_from_json(json_filename='tools.json'):
     """
     Loads tools from a JSON file.
 
+    Args:
+        json_filename (str): The name of the JSON file containing tool data.
+                             Defaults to 'tools.json'.
+
     Returns:
         list: A list of Tool instances.
-    """
 
-    with importlib.resources.open_text('labmateai.data', 'tools.json') as file:
-        data = json.load(file)
+    Raises:
+        FileNotFoundError: If the JSON file is not found.
+        KeyError: If required fields are missing in the JSON data.
+        ValueError: If tool_id is missing or not an integer.
+    """
     tools = []
-    for item in data:
-        # Access required fields directly to ensure KeyError is raised if missing
+    try:
+        with importlib.resources.open_text('labmateai.data', json_filename) as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"JSON file '{json_filename}' not found in 'labmateai/data/' directory.")
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Error decoding JSON file '{json_filename}': {str(e)}")
+
+    for index, item in enumerate(data, start=1):
+        try:
+            tool_id = item['tool_id']
+            if not isinstance(tool_id, int):
+                raise ValueError(
+                    f"tool_id must be an integer in item {index}.")
+        except KeyError:
+            # Assign a unique tool_id if missing
+            tool_id = index
+            print(
+                f"Warning: 'tool_id' missing for item {index}. Assigning tool_id={tool_id}.")
+
+        try:
+            name = item['name'].strip()
+            category = item['category'].strip()
+            features = [feature.strip().lower()
+                        for feature in item.get('features', []) if feature.strip()]
+            cost = str(item['cost'])
+            description = item['description'].strip()
+            url = item['url'].strip()
+            language = item['language'].strip()
+            platform = item['platform'].strip()
+        except KeyError as ke:
+            raise KeyError(
+                f"Missing required field {ke} in JSON item {index}.")
+        except ValueError as ve:
+            raise ValueError(
+                f"Invalid data format in JSON item {index}: {str(ve)}")
+
         tool = Tool(
-            name=item['name'],
-            category=item['category'],
-            features=item.get('features', []),
-            cost=item['cost'],
-            description=item['description'],
-            url=item['url'],
-            platform=item['platform'],
-            language=item['language']
+            tool_id=tool_id,
+            name=name,
+            category=category,
+            features=features,
+            cost=cost,
+            description=description,
+            url=url,
+            language=language,
+            platform=platform
         )
         tools.append(tool)
+
     return tools
 
 
-def load_tools_from_csv(file_path):
+def load_tools_from_csv(csv_filename='tools.csv'):
     """
     Loads tools from a CSV file.
 
     Args:
-        file_path (str): The path to the CSV file containing tool data.
+        csv_filename (str): The name of the CSV file containing tool data.
+                            Defaults to 'tools.csv'.
 
     Returns:
         list: A list of Tool instances.
+
+    Raises:
+        FileNotFoundError: If the CSV file is not found.
+        KeyError: If required fields are missing in the CSV data.
+        ValueError: If tool_id is missing or not an integer.
     """
-
     tools = []
-    required_fields = ['name', 'category', 'features',
+    required_fields = ['tool_id', 'name', 'category', 'features',
                        'cost', 'description', 'url', 'platform', 'language']
-    with open(file_path, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
+    csv_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), 'data', csv_filename)
 
-        # Check if CSV has headers
-        if reader.fieldnames is None:
-            raise KeyError("CSV file is missing header.")
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(
+            f"CSV file '{csv_filename}' not found in 'labmateai/data/' directory.")
+
+    with open(csv_path, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
 
         # Check for missing required fields in headers
         missing_fields = [
             field for field in required_fields if field not in reader.fieldnames]
         if missing_fields:
             raise KeyError(
-                f"CSV file is missing required fields: {', '.join(missing_fields)}.")
+                f"CSV file '{csv_filename}' is missing required fields: {', '.join(missing_fields)}.")
 
         # start=2 to account for header
         for row_num, row in enumerate(reader, start=2):
-            # Validate presence and non-emptiness of required fields
-            for field in required_fields:
-                value = row.get(field)
-                if value is None or not value.strip():
-                    raise KeyError(
-                        f"Missing or empty required field '{field}' in row {row_num}.")
+            try:
+                tool_id = int(row['tool_id'])
+            except ValueError:
+                raise ValueError(
+                    f"Invalid 'tool_id' at row {row_num}. Must be an integer.")
 
-            # Create Tool instance
+            try:
+                name = row['name'].strip()
+                category = row['category'].strip()
+                features = [feature.strip().lower()
+                            for feature in row['features'].split(';') if feature.strip()]
+                cost = str(row['cost'])
+                description = row['description'].strip()
+                url = row['url'].strip()
+                language = row['language'].strip()
+                platform = row['platform'].strip()
+            except KeyError as ke:
+                raise KeyError(
+                    f"Missing required field {ke} at row {row_num} in CSV.")
+            except ValueError as ve:
+                raise ValueError(
+                    f"Invalid data format at row {row_num} in CSV: {str(ve)}")
+
             tool = Tool(
-                name=row['name'],
-                category=row['category'],
-                # Assuming features are semicolon-separated; handle empty features gracefully
-                features=row['features'].split(
-                    ';') if row['features'].strip() else [],
-                cost=row['cost'],
-                description=row['description'],
-                url=row['url'],
-                platform=row['platform'],
-                language=row['language']
+                tool_id=tool_id,
+                name=name,
+                category=category,
+                features=features,
+                cost=cost,
+                description=description,
+                url=url,
+                language=language,
+                platform=platform
             )
             tools.append(tool)
 

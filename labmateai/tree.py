@@ -1,3 +1,5 @@
+# tree.py
+
 """
 This module defines a tree structure to organize tools by categories.
 """
@@ -9,19 +11,22 @@ class TreeNode:
 
     Attributes:
         name (str): The name of the node.
-        tool (object): The tool associated with the node (optional).
+        tool (Tool): The tool associated with the node (optional).
         children (list): A list of child nodes.
     """
 
     def __init__(self, name, tool=None, original_name=None):
-        self.name = name  # Normalized name (e.g., lowercase)
-        self.original_name = original_name or name  # Original name
+        self.name = name.lower()  # Normalized name for case-insensitive matching
+        self.original_name = original_name or name  # Original name with original casing
         self.tool = tool
         self.children = []
 
     def add_child(self, child_node):
         """
         Adds a child node to the current node.
+
+        Args:
+            child_node (TreeNode): The child node to add.
         """
         self.children.append(child_node)
 
@@ -43,6 +48,7 @@ class ToolTree:
     def __init__(self):
         self.root = TreeNode("Root")
         self.categories = {}
+        self.tools = []
 
     def build_tree(self, tools):
         """
@@ -53,13 +59,14 @@ class ToolTree:
         """
         for tool in tools:
             self.add_tool(tool)
+            self.tools.append(tool)
 
     def add_tool(self, tool):
         """
         Adds a tool to the tree under the specified category.
 
         Args:
-            tool: The tool to add.
+            tool (Tool): The tool to add.
         """
         normalized_category = tool.category.lower()
         if normalized_category not in self.categories:
@@ -92,7 +99,7 @@ class ToolTree:
             category_name (str): The name of the category to retrieve tools from.
 
         Returns:
-            list: A list of tools in the specified category.
+            list: A list of Tool objects in the specified category.
 
         Raises:
             ValueError: If the category does not exist.
@@ -106,12 +113,13 @@ class ToolTree:
     def search_tools(self, keyword):
         """
         Searches for tools that match the provided keyword in their name, description, or features.
+        Implements partial matching to accommodate partial keywords.
 
         Args:
             keyword (str): The keyword to search for.
 
         Returns:
-            list: A list of matching tools.
+            list: A list of matching Tool objects.
         """
         results = []
         keyword_lower = keyword.lower()
@@ -120,7 +128,8 @@ class ToolTree:
             if node.tool:
                 tool = node.tool
                 if (keyword_lower in tool.name.lower() or
-                    keyword_lower in tool.description.lower() or keyword_lower in tool.category.lower() or
+                    keyword_lower in tool.description.lower() or
+                    keyword_lower in tool.category.lower() or
                         any(keyword_lower in feature.lower() for feature in tool.features)):
                     results.append(tool)
             for child in node.children:
@@ -131,7 +140,10 @@ class ToolTree:
 
     def get_all_categories(self):
         """
-        Returns a list of all categories in the tree.
+        Returns a list of all categories in the tree with original casing.
+
+        Returns:
+            list: A list of category names.
         """
         return [node.original_name for node in self.categories.values()]
 
@@ -144,13 +156,13 @@ class ToolTree:
             level (int): The current level in the tree. Defaults to 0.
 
         Returns:
-            Tree structure printed to the console.
+            None: Prints the tree structure to the console.
         """
 
         if node is None:
             node = self.root
 
         indent = " " * (level * 4)
-        print(f"{indent}- {node.name}")
+        print(f"{indent}- {node.original_name}")
         for child in node.children:
             self.traverse_tree(child, level + 1)

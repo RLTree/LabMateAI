@@ -1,3 +1,5 @@
+# tool.py
+
 """
 This module contains the Tool class, which represents a tool used in the lab.
 
@@ -5,8 +7,8 @@ Classes:
     Tool: A class representing a tool used in the lab.
 """
 
-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Tuple
 
 
 @dataclass(frozen=True)
@@ -15,10 +17,11 @@ class Tool:
     A class to represent a tool used in the lab.
     """
 
+    tool_id: int
     name: str
     category: str
-    features: list
-    cost: str
+    features: Tuple[str, ...]  # Changed to Tuple for immutability
+    cost: str  # Changed from float to str to accommodate 'Free'
     description: str
     url: str
     language: str
@@ -26,7 +29,7 @@ class Tool:
 
     def __hash__(self):
         """
-        Return the hash value of the tool based on its name
+        Return the hash value of the tool based on its name.
 
         Returns:
             int: The hash value of the tool.
@@ -56,4 +59,4 @@ class Tool:
             str: A string representation of the tool.
         """
 
-        return f"Tool(name='{self.name}')"
+        return f"Tool(tool_id={self.tool_id}, name='{self.name}')"

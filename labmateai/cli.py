@@ -1,128 +1,150 @@
-# labmateai/cli.py
+# cli.py
+
 """
-This module provides a command-line interface (CLI) for LabMate, a tool recommendation system.
+CLI module for LabMateAI.
 
-Classes:
-    CLI: A class to handle the command-line interface for LabMate.
-
-Functions:
-    main: The main function for the LabMate CLI.
+This module provides the CLI class, which handles user interactions
+and provides tool recommendations based on user input.
 """
 
 import sys
-from .recommender import Recommender
-from .data_loader import load_tools_from_json
+from unittest.mock import patch
+from labmateai.recommender import Recommender, load_data, build_user_item_matrix
+from labmateai.collaborative_recommender import CollaborativeRecommender
+from labmateai.tool import Tool
 
 
 class CLI:
     """
-    A class to handle the command-line interface for LabMate.
+    Command-Line Interface for LabMateAI.
     """
 
-    def __init__(self, recommender):
+    def __init__(self, recommender=None, cf_recommender=None, tools=None):
         """
-        Initialize the CLI with a Recommender instance.
+        Initializes the CLI by loading data and setting up recommenders.
+        """
+        try:
+            if not recommender or not cf_recommender or not tools:
+                # Load data only if recommenders and tools are not provided
+                users, tools_df, interactions = load_data()
+                user_item_matrix = build_user_item_matrix(interactions)
 
-        Args:
-            recommender (Recommender): An instance of the Recommender class.
-        """
-        self.recommender = recommender
+                # Convert tools_df to a list of Tool objects
+                tools = [
+                    Tool(
+                        tool_id=int(row['tool_id']),
+                        name=row['name'],  # Fixed from 'tool_name' to 'name'
+                        category=row['category'],
+                        features=[feature.strip().lower()
+                                  for feature in row['features'].split(';') if feature.strip()],
+                        cost=row['cost'],
+                        description=row['description'],
+                        url=row['url'],
+                        language=row['language'],
+                        platform=row['platform']
+                    )
+                    for index, row in tools_df.iterrows()
+                ]
+
+                # Initialize the Recommender for content-based recommendations
+                recommender = Recommender(tools=tools)
+
+                # Initialize Collaborative Filtering Recommender
+                cf_recommender = CollaborativeRecommender(
+                    user_item_matrix=user_item_matrix,
+                    tools_df=tools_df,
+                    n_neighbors=5
+                )
+
+            # Assign attributes
+            self.tools = tools
+            self.recommender = recommender
+            self.cf_recommender = cf_recommender
+
+            # Print loaded tools
+            tool_names = [tool.name for tool in self.tools]
+            print(f"Loaded tools: {tool_names}")
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize CLI: {e}")
 
     def start(self):
         """
-        Start the CLI. If command-line arguments are provided, process them.
-        Otherwise, enter interactive mode.
-        """
-        if len(sys.argv) > 1:
-            # Handle command-line arguments if needed
-            pass
-        else:
-            print("No arguments provided. Switching to interactive mode.\n")
-            self.interactive_mode()
-
-    def interactive_mode(self):
-        """
-        Handle the interactive mode of the CLI.
+        Starts the interactive CLI session.
         """
         while True:
-            print("Please choose an option:")
+            print("\n--- LabMateAI Tool Recommender ---")
+            print("Please select an option:")
             print("1. Recommend similar tools")
-            print("2. Recommend tools in a category")
+            print("2. Recommend tools within a category")
             print("3. Search tools by keyword")
             print("4. Exit")
-            choice = input("Enter your choice: ").strip()
+
+            choice = input("Enter your choice (1-4): ").strip()
 
             if choice == '1':
                 self.handle_recommend_similar_tools()
             elif choice == '2':
-                self.handle_recommend_tools_in_category()
+                self.handle_recommend_category_tools()
             elif choice == '3':
-                self.handle_search_tools_by_keyword()
+                self.handle_search_tools()
             elif choice == '4':
-                print("Exiting LabMate. Goodbye!")
+                print("Exiting LabMateAI. Goodbye!")
                 break
             else:
-                print("Invalid choice. Please try again.\n")
+                print("Invalid choice. Please enter a number between 1 and 4.")
 
     def handle_recommend_similar_tools(self):
         """
-        Handle the logic for recommending similar tools.
+        Handles the recommendation of similar tools based on a tool name.
         """
-        tool_name = input("Enter the tool name: ").strip()
+        tool_name = input("Enter the name of the tool you like: ").strip()
         try:
             recommendations = self.recommender.recommend_similar_tools(
-                tool_name, 5)
-            if recommendations:
-                print("\nRecommendations:")
-                for tool in recommendations:
-                    print(f"- {tool.name}: {tool.description}")
-                print("")  # Add an empty line for better readability
-            else:
-                print(f"No recommendations found for tool '{tool_name}'.\n")
+                tool_name=tool_name, num_recommendations=5)
+            print("\nRecommendations:")
+            for tool in recommendations:
+                print(
+                    f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
         except ValueError as ve:
-            print(str(ve) + "\n")
+            print(ve)
 
-    def handle_recommend_tools_in_category(self):
+    def handle_recommend_category_tools(self):
         """
-        Handle the logic for recommending tools in a specific category.
+        Handles the recommendation of tools within a specified category.
         """
         category_name = input("Enter the category name: ").strip()
         try:
             recommendations = self.recommender.recommend_tools_in_category(
-                category_name)
-            if recommendations:
-                print("\nRecommendations:")
-                for tool in recommendations:
-                    print(f"- {tool.name}: {tool.description}")
-                print("")  # Add an empty line for better readability
-            else:
-                print(f"No tools found in category '{category_name}'.\n")
+                category_name=category_name)
+            print("\nRecommendations:")
+            for tool in recommendations:
+                print(
+                    f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
         except ValueError as ve:
-            print(str(ve) + "\n")
+            print(ve)
 
-    def handle_search_tools_by_keyword(self):
+    def handle_search_tools(self):
         """
-        Handle the logic for searching tools by a keyword.
+        Handles the search and recommendation of tools based on a keyword.
         """
-        keyword = input("Enter the keyword to search: ").strip()
-        recommendations = self.recommender.search_and_recommend(keyword)
+        keyword = input("Enter a keyword to search for tools: ").strip()
+        recommendations = self.recommender.search_and_recommend(
+            keyword=keyword)
         if recommendations:
             print("\nRecommendations:")
             for tool in recommendations:
-                print(f"- {tool.name}: {tool.description}")
-            print("")  # Add an empty line for better readability
+                print(
+                    f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
         else:
-            print(f"No tools found matching keyword '{keyword}'.\n")
+            print(f"No tools found matching keyword '{keyword}'.")
 
 
 def main():
     """
-    The main function for the LabMate CLI.
+    Main function to run the CLI.
     """
-    # Initialize the Recommender and CLI
-    tools = load_tools_from_json()
-    recommender = Recommender(tools)
-    cli = CLI(recommender)
+    cli = CLI()
     cli.start()
 
 

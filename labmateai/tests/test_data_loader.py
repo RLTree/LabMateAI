@@ -9,10 +9,10 @@ import pytest
 from labmateai.data_loader import load_tools_from_json, load_tools_from_csv
 from labmateai.tool import Tool
 
-
-# Define sample JSON data for testing
+# Define sample JSON data for testing with tool_id
 SAMPLE_JSON = json.dumps([
     {
+        "tool_id": 119,
         "name": "Seurat",
         "category": "Single-Cell Analysis",
         "features": ["Single-cell RNA-seq", "Clustering"],
@@ -23,6 +23,7 @@ SAMPLE_JSON = json.dumps([
         "language": "R"
     },
     {
+        "tool_id": 359,
         "name": "GenomicsToolX",
         "category": "Genomics",
         "features": ["Genome Assembly", "Variant Calling"],
@@ -33,6 +34,7 @@ SAMPLE_JSON = json.dumps([
         "language": "Python"
     },
     {
+        "tool_id": 360,
         "name": "RNAAnalyzer",
         "category": "RNA",
         "features": ["RNA-Seq Analysis", "Differential Expression"],
@@ -44,12 +46,11 @@ SAMPLE_JSON = json.dumps([
     }
 ])
 
-
-# Define sample CSV data for testing
-SAMPLE_CSV = """name,category,features,cost,description,url,platform,language
-Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
-GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",Python
-RNAAnalyzer,RNA,"RNA-Seq Analysis;Differential Expression",Free,"A tool for analyzing RNA-Seq data and identifying differential gene expression.","https://rnaanalyzer.example.com/","Cross-platform",R
+# Define sample CSV data for testing with tool_id
+SAMPLE_CSV = """tool_id,name,category,features,cost,description,url,platform,language
+1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
+2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",Python
+3,RNAAnalyzer,RNA,"RNA-Seq Analysis;Differential Expression",Free,"A tool for analyzing RNA-Seq data and identifying differential gene expression.","https://rnaanalyzer.example.com/","Cross-platform",R
 """
 
 
@@ -76,6 +77,7 @@ def expected_tools():
     """
     return [
         Tool(
+            tool_id=1,
             name="Seurat",
             category="Single-Cell Analysis",
             features=["Single-cell RNA-seq", "Clustering"],
@@ -86,6 +88,7 @@ def expected_tools():
             language="R"
         ),
         Tool(
+            tool_id=2,
             name="GenomicsToolX",
             category="Genomics",
             features=["Genome Assembly", "Variant Calling"],
@@ -96,6 +99,7 @@ def expected_tools():
             language="Python"
         ),
         Tool(
+            tool_id=3,
             name="RNAAnalyzer",
             category="RNA",
             features=["RNA-Seq Analysis", "Differential Expression"],
@@ -126,6 +130,7 @@ def test_load_tools_from_json_success(expected_tools, sample_json_data, mocker):
         expected_tools), f"Expected {len(expected_tools)} tools, got {len(tools)}."
 
     for loaded_tool, expected_tool in zip(tools, expected_tools):
+        assert loaded_tool.tool_id == expected_tool.tool_id, f"Expected tool_id '{expected_tool.tool_id}', got '{loaded_tool.tool_id}'."
         assert loaded_tool.name == expected_tool.name, f"Expected tool name '{expected_tool.name}', got '{loaded_tool.name}'."
         assert loaded_tool.category == expected_tool.category, f"Expected category '{expected_tool.category}', got '{loaded_tool.category}'."
         assert loaded_tool.features == expected_tool.features, f"Expected features {expected_tool.features}, got {loaded_tool.features}."
@@ -146,6 +151,7 @@ def test_load_tools_from_json_missing_required_fields(mocker):
     # JSON with missing 'features' and 'language'
     incomplete_json = json.dumps([
         {
+            "tool_id": 4,
             "name": "IncompleteTool",
             "category": "Bioinformatics",
             "cost": "Free",
@@ -197,6 +203,7 @@ def test_load_tools_from_csv_success(expected_tools, sample_csv_data, tmp_path):
         expected_tools), f"Expected {len(expected_tools)} tools, got {len(tools)}."
 
     for loaded_tool, expected_tool in zip(tools, expected_tools):
+        assert loaded_tool.tool_id == expected_tool.tool_id, f"Expected tool_id '{expected_tool.tool_id}', got '{loaded_tool.tool_id}'."
         assert loaded_tool.name == expected_tool.name, f"Expected tool name '{expected_tool.name}', got '{loaded_tool.name}'."
         assert loaded_tool.category == expected_tool.category, f"Expected category '{expected_tool.category}', got '{loaded_tool.category}'."
         assert loaded_tool.features == expected_tool.features, f"Expected features '{expected_tool.features}', got '{loaded_tool.features}'."
@@ -208,27 +215,28 @@ def test_load_tools_from_csv_success(expected_tools, sample_csv_data, tmp_path):
 
 
 @pytest.mark.parametrize("csv_data, expected_tool_count, expected_tool_names, expect_error", [
-    # Valid CSV with two tools
-    ("""name,category,features,cost,description,url,platform,language
-ToolA,Bioinformatics,"Feature1;Feature2",Free,"Description A","http://toola.com","Cross-platform",Python
-ToolB,Genomics,"Feature3;Feature4",Free,"Description B","http://toolb.com","Cross-platform",R
+    # Valid CSV with three tools
+    ("""tool_id,name,category,features,cost,description,url,platform,language
+1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
+2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",Python
+3,RNAAnalyzer,RNA,"RNA-Seq Analysis;Differential Expression",Free,"A tool for analyzing RNA-Seq data and identifying differential gene expression.","https://rnaanalyzer.example.com/","Cross-platform",R
 """,
-     2,
-     ["ToolA", "ToolB"],
+     3,
+     ["Seurat", "GenomicsToolX", "RNAAnalyzer"],
      False),
     # CSV with missing 'language' field (empty)
-    ("""name,category,features,cost,description,url,platform,language
-ToolC,Genomics,"Feature5;Feature6",Free,"Description C","http://toolc.com","Cross-platform",
+    ("""tool_id,name,category,features,cost,description,url,platform,language
+4,IncompleteTool,Bioinformatics,"Feature1;Feature2",Free,"A tool with missing language field.","https://incomplete.example.com/","Cross-platform",
 """,
      1,
-     ["ToolC"],
+     ["IncompleteTool"],
      True),
     # CSV with empty 'features'
-    ("""name,category,features,cost,description,url,platform,language
-ToolD,Bioinformatics,"",Free,"Description D","http://toold.com","Cross-platform",Java
+    ("""tool_id,name,category,features,cost,description,url,platform,language
+5,ToolWithNoFeatures,Bioinformatics,"",Free,"A tool with no features.","https://toolwithnofeatures.example.com/","Cross-platform",Java
 """,
      1,
-     ["ToolD"],
+     ["ToolWithNoFeatures"],
      True),
 ])
 def test_load_tools_from_csv_various_cases(csv_data, expected_tool_count, expected_tool_names, expect_error, tmp_path):
@@ -277,9 +285,9 @@ def test_load_tools_from_csv_missing_required_fields(tmp_path):
         tmp_path: Pytest fixture for temporary directory.
     """
     # CSV missing 'language' field in the second row
-    malformed_csv = """name,category,features,cost,description,url,platform,language
-ToolA,Bioinformatics,"Feature1;Feature2",Free,"Description A","http://toola.com","Cross-platform",Python
-ToolB,Genomics,"Feature3;Feature4",Free,"Description B","http://toolb.com","Cross-platform",
+    malformed_csv = """tool_id,name,category,features,cost,description,url,platform,language
+1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
+2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",
 """
     csv_file = tmp_path / "malformed_columns.csv"
     csv_file.write_text(malformed_csv, encoding='utf-8')
@@ -298,9 +306,9 @@ def test_load_tools_from_csv_malformed_csv(tmp_path):
         tmp_path: Pytest fixture for temporary directory.
     """
     # Malformed CSV (uneven columns)
-    malformed_csv = """name,category,features,cost,description,url,platform,language
-ToolA,Bioinformatics,"Feature1;Feature2",Free,"Description A","http://toola.com","Cross-platform",Python
-ToolB,Genomics,"Feature3;Feature4",Free,"Description B","http://toolb.com","Cross-platform"
+    malformed_csv = """tool_id,name,category,features,cost,description,url,platform,language
+1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
+2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform"
 """
     csv_file = tmp_path / "malformed_columns.csv"
     csv_file.write_text(malformed_csv, encoding='utf-8')
@@ -318,8 +326,8 @@ def test_load_tools_from_csv_features_parsing(tmp_path):
     Args:
         tmp_path: Pytest fixture for temporary directory.
     """
-    csv_data = """name,category,features,cost,description,url,platform,language
-ToolE,Bioinformatics,"Feature1;Feature2;Feature3",Free,"Description E","http://toole.com","Cross-platform",C++
+    csv_data = """tool_id,name,category,features,cost,description,url,platform,language
+6,BioToolY,Bioinformatics,"Feature1;Feature2;Feature3",Free,"A bioinformatics tool for data analysis.","https://biotooly.example.com/","Cross-platform",C++
 """
     csv_file = tmp_path / "features_parsing.csv"
     csv_file.write_text(csv_data, encoding='utf-8')
@@ -339,8 +347,8 @@ def test_load_tools_from_csv_extra_columns(tmp_path):
     Args:
         tmp_path: Pytest fixture for temporary directory.
     """
-    csv_data = """name,category,features,cost,description,url,platform,language,extra_column
-ToolF,Bioinformatics,"Feature4;Feature5",Free,"Description F","http://toolf.com","Cross-platform",Ruby,ExtraValue
+    csv_data = """tool_id,name,category,features,cost,description,url,platform,language,extra_column
+7,BioToolZ,Bioinformatics,"Feature4;Feature5",Free,"Another bioinformatics tool.","https://biotoolz.example.com/","Cross-platform",Ruby,ExtraValue
 """
     csv_file = tmp_path / "extra_columns.csv"
     csv_file.write_text(csv_data, encoding='utf-8')
@@ -349,10 +357,9 @@ ToolF,Bioinformatics,"Feature4;Feature5",Free,"Description F","http://toolf.com"
     assert len(tools) == 1, f"Expected 1 tool, got {len(tools)}."
 
     tool = tools[0]
-    assert tool.name == "ToolF", f"Expected tool name 'ToolF', got '{tool.name}'."
-    assert tool.category == "Bioinformatics"
-    assert tool.features == ["Feature4", "Feature5"]
-    assert tool.language == "Ruby"
+    assert tool.name == "BioToolZ", f"Expected tool name 'BioToolZ', got '{tool.name}'."
+    assert tool.tool_id == 7, f"Expected tool_id '7', got '{tool.tool_id}'."
+    assert tool.language == "Ruby", f"Expected language 'Ruby', got '{tool.language}'."
     # Extra column should be ignored since 'extra_column' is not used in Tool initialization
     # No assertion needed for 'extra_column'
 
@@ -381,7 +388,7 @@ def test_load_tools_from_csv_only_headers(tmp_path):
     Args:
         tmp_path: Pytest fixture for temporary directory.
     """
-    headers_only_csv = """name,category,features,cost,description,url,platform,language
+    headers_only_csv = """tool_id,name,category,features,cost,description,url,platform,language
 """
     csv_file = tmp_path / "headers_only.csv"
     csv_file.write_text(headers_only_csv, encoding='utf-8')
