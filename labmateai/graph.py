@@ -77,8 +77,7 @@ class Graph:
                 if round(similarity, 2) >= SIMILARITY_THRESHOLD:
                     self.add_edge(tool1, tool2, similarity)
                 # Debugging: Uncomment to print similarity values
-                print(
-                    f"Similarity between {tool1.name} and {tool2.name}: {similarity:.2f}")
+                # print(f"Similarity between {tool1.name} and {tool2.name}: {similarity:.2f}")
 
     def calculate_similarity(self, tool1, tool2):
         """

@@ -52,6 +52,7 @@ class CollaborativeRecommender:
         if tools_df['tool_id'].duplicated().any():
             raise ValueError("Duplicate tool_ids found in tools_df.")
 
+        # Validate n_neighbors is at least 1
         if n_neighbors < 1:
             raise ValueError("n_neighbors must be at least 1.")
 
@@ -74,6 +75,45 @@ class CollaborativeRecommender:
 
         # Create a set of all tool_ids for validation
         self.all_tool_ids = set(self.tools_df['tool_id'].unique())
+
+    def get_recommendation_scores(self, user_id: int) -> pd.Series:
+        """
+        Generates tool recommendation scores for a given user based on similar users' preferences.
+
+        Args:
+            user_id (int): The ID of the user to generate recommendations for.
+
+            Returns:
+                pd.Series: A Series of tool recommendation scores for the user.
+
+        """
+
+        if user_id not in self.user_item_matrix.index:
+            raise ValueError(
+                f"User ID {user_id} not found in the user-item matrix.")
+
+        # Retrieve the user's ratings vector
+        user_vector = self.user_item_matrix.loc[user_id].values.reshape(1, -1)
+
+        # Chech if user has rated any tools
+        if np.all(user_vector == 0.0):
+            # If user has not rated any tools, use the average ratings from all users
+            return self.user_item_matrix.mean()
+
+        # Find the nearest neighbors (similar users)
+        n_neighbors = min(self.n_neighbors, len(self.user_item_matrix))
+        distances, indices = self.model.kneighbors(
+            user_vector, n_neighbors=n_neighbors + 1)
+
+        # Exclude the user itself
+        similar_users_indices = indices.flatten()[1:]
+
+        # Aggregate ratings from similar users
+        similar_users_ratings = self.user_item_matrix.iloc[similar_users_indices]
+        mean_ratings = similar_users_ratings.mean(axis=0)
+
+        # Return the mean ratings as recommendation scores
+        return mean_ratings
 
     def get_recommendations(self, user_id: int, n_recommendations: int = 5) -> list:
         """

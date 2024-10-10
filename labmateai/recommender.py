@@ -87,8 +87,8 @@ class Recommender:
                            for tool in tools}  # For case-insensitive matching
         self.build_recommendation_system()
 
-        # Enhanced print for clarity
-        print(f"Loaded tools: {[tool.name for tool in self.tools]}")
+        # Uncomment to print loaded tools
+        # print(f"Loaded tools: {[tool.name for tool in self.tools]}")
 
     def build_recommendation_system(self):
         """

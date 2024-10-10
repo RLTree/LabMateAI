@@ -19,18 +19,27 @@ class CLI:
     Command-Line Interface for LabMateAI.
     """
 
-    def __init__(self, recommender=None, cf_recommender=None, tools=None):
+    def __init__(self):
         """
-        Initializes the CLI by loading data and setting up recommenders.
+        Initializes the CLI, but defers loading data and initializing recommenders.
         """
-        try:
-            if not recommender or not cf_recommender or not tools:
-                # Load data only if recommenders and tools are not provided
+        self.tools = None
+        self.recommender = None
+        self.cf_recommender = None
+        self.data_loaded = False
+
+    def _load_data_and_initialize_recommenders(self):
+        """
+        Loads data and initializes the recommenders.
+        """
+        if not self.data_loaded:
+            try:
+                # Load data
                 users, tools_df, interactions = load_data()
                 user_item_matrix = build_user_item_matrix(interactions)
 
                 # Convert tools_df to a list of Tool objects
-                tools = [
+                self.tools = [
                     Tool(
                         tool_id=int(row['tool_id']),
                         name=row['name'],  # Fixed from 'tool_name' to 'name'
@@ -47,26 +56,24 @@ class CLI:
                 ]
 
                 # Initialize the Recommender for content-based recommendations
-                recommender = Recommender(tools=tools)
+                self.recommender = Recommender(tools=self.tools)
 
                 # Initialize Collaborative Filtering Recommender
-                cf_recommender = CollaborativeRecommender(
+                self.cf_recommender = CollaborativeRecommender(
                     user_item_matrix=user_item_matrix,
                     tools_df=tools_df,
                     n_neighbors=5
                 )
 
-            # Assign attributes
-            self.tools = tools
-            self.recommender = recommender
-            self.cf_recommender = cf_recommender
+                # Mark data as loaded
+                self.data_loaded = True
 
-            # Print loaded tools
-            tool_names = [tool.name for tool in self.tools]
-            print(f"Loaded tools: {tool_names}")
+                # Print loaded tools
+                tool_names = [tool.name for tool in self.tools]
+                print(f"Loaded tools: {tool_names}")
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to initialize CLI: {e}")
+            except Exception as e:
+                raise RuntimeError(f"Failed to initialize CLI: {e}")
 
     def start(self):
         """
@@ -83,10 +90,13 @@ class CLI:
             choice = input("Enter your choice (1-4): ").strip()
 
             if choice == '1':
+                self._load_data_and_initialize_recommenders()
                 self.handle_recommend_similar_tools()
             elif choice == '2':
+                self._load_data_and_initialize_recommenders()
                 self.handle_recommend_category_tools()
             elif choice == '3':
+                self._load_data_and_initialize_recommenders()
                 self.handle_search_tools()
             elif choice == '4':
                 print("Exiting LabMateAI. Goodbye!")
@@ -99,9 +109,21 @@ class CLI:
         Handles the recommendation of similar tools based on a tool name.
         """
         tool_name = input("Enter the name of the tool you like: ").strip()
+        num_recommendations = input(
+            "Enter the number of recommendations you want: ").strip()
+
+        try:
+            num_recommendations = int(num_recommendations)
+            if num_recommendations <= 0:
+                raise ValueError(
+                    "Number of recommendations must be greater than zero.")
+        except ValueError as ve:
+            print(f"Invalid input for the number of recommendations: {ve}")
+            return
+
         try:
             recommendations = self.recommender.recommend_similar_tools(
-                tool_name=tool_name, num_recommendations=5)
+                tool_name=tool_name, num_recommendations=num_recommendations)
             print("\nRecommendations:")
             for tool in recommendations:
                 print(
@@ -114,9 +136,21 @@ class CLI:
         Handles the recommendation of tools within a specified category.
         """
         category_name = input("Enter the category name: ").strip()
+        num_recommendations = input(
+            "Enter the number of recommendations you want: ").strip()
+
+        try:
+            num_recommendations = int(num_recommendations)
+            if num_recommendations <= 0:
+                raise ValueError(
+                    "Number of recommendations must be greater than zero.")
+        except ValueError as ve:
+            print(f"Invalid input for the number of recommendations: {ve}")
+            return
+
         try:
             recommendations = self.recommender.recommend_tools_in_category(
-                category_name=category_name)
+                category_name=category_name, num_recommendations=num_recommendations)
             print("\nRecommendations:")
             for tool in recommendations:
                 print(
@@ -129,8 +163,20 @@ class CLI:
         Handles the search and recommendation of tools based on a keyword.
         """
         keyword = input("Enter a keyword to search for tools: ").strip()
+        num_recommendations = input(
+            "Enter the number of recommendations you want: ").strip()
+
+        try:
+            num_recommendations = int(num_recommendations)
+            if num_recommendations <= 0:
+                raise ValueError(
+                    "Number of recommendations must be greater than zero.")
+        except ValueError as ve:
+            print(f"Invalid input for the number of recommendations: {ve}")
+            return
+
         recommendations = self.recommender.search_and_recommend(
-            keyword=keyword)
+            keyword=keyword, num_recommendations=num_recommendations)
         if recommendations:
             print("\nRecommendations:")
             for tool in recommendations:

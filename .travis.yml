@@ -2,8 +2,34 @@ language: python
 python:
   - "3.8"
   - "3.9"
+  - "3.10"
+
 install:
   - pip install -r requirements.txt
-  - pip install labmateai
+  - pip install .
+
+before_script:
+  - flake8 .  # Run linting before the tests to ensure code style consistency
+
 script:
-  - pytest
+  - pytest --cov=labmateai --cov-report=xml --cov-report=term-missing  # Added coverage reporting
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)  # Upload coverage reports to Codecov
+
+deploy:
+  provider: pypi
+  username: __token__  # Replace with '__token__' if using a token, else provide your PyPI username
+  password:
+    secure: "<pypi-AgEIcHlwaS5vcmcCJGFiZjdkNWY4LTFhZWUtNGRmZS04MWE2LWNlNGUyMWU4ZWJlMQACKlszLCJiYjI2YzRkMC1lZjA4LTRlZmMtOTZmMS0xMTkyNzFjZjM4ZmMiXQAABiATN_pxBDKC66Ol0lFe5jKB_FOdGeX4w93SY0qi9hY1cg>"
+  on:
+    tags: true  # Only deploy on tagged commits (i.e., new versions)
+    branch: collab_filtering  # Specify the branch for release
+  distributions: "sdist bdist_wheel"  # Create source distribution and wheel
+
+notifications:
+  email:
+    recipients:
+      - tnoblin@health.ucsd.edu
+    on_success: change
+    on_failure: always

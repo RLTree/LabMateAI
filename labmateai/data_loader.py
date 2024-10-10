@@ -1,161 +1,164 @@
 # labmateai/data_loader.py
 
 """
-This module contains functions for loading tool data from JSON and CSV files.
+This module contains functions for loading tool data from the PostgreSQL database.
 It ensures that each Tool instance includes a unique tool_id and handles data validation.
 """
 
-import json
-import csv
-import importlib.resources
+import psycopg2
 from .tool import Tool
-import os
+
+# Database connection parameters
+DB_CONFIG = {
+    'dbname': 'labmate_db',
+    'user': 'RLTree',   # Update with your DB username
+    'password': 'BabyBlue!',  # Update with your DB password
+    'host': 'localhost',  # Update with your host if different
+    'port': '5432'  # Default PostgreSQL port
+}
 
 
-def load_tools_from_json(json_filename='tools.json'):
+def load_tools_from_db():
     """
-    Loads tools from a JSON file.
-
-    Args:
-        json_filename (str): The name of the JSON file containing tool data.
-                             Defaults to 'tools.json'.
+    Loads tools from the PostgreSQL database.
 
     Returns:
         list: A list of Tool instances.
 
     Raises:
-        FileNotFoundError: If the JSON file is not found.
-        KeyError: If required fields are missing in the JSON data.
-        ValueError: If tool_id is missing or not an integer.
+        RuntimeError: If there's an error connecting to the database or querying data.
     """
     tools = []
+
     try:
-        with importlib.resources.open_text('labmateai.data', json_filename) as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        raise FileNotFoundError(
-            f"JSON file '{json_filename}' not found in 'labmateai/data/' directory.")
-    except json.JSONDecodeError as e:
-        raise ValueError(
-            f"Error decoding JSON file '{json_filename}': {str(e)}")
+        # Establish a connection to the PostgreSQL database using a context manager
+        with psycopg2.connect(**DB_CONFIG) as conn:
+            with conn.cursor() as cursor:
+                # Execute SQL query to get tool data
+                query = """
+                    SELECT tool_id, name, category, features, cost, description, url, language, platform
+                    FROM tools;
+                """
+                cursor.execute(query)
 
-    for index, item in enumerate(data, start=1):
-        try:
-            tool_id = item['tool_id']
-            if not isinstance(tool_id, int):
-                raise ValueError(
-                    f"tool_id must be an integer in item {index}.")
-        except KeyError:
-            # Assign a unique tool_id if missing
-            tool_id = index
-            print(
-                f"Warning: 'tool_id' missing for item {index}. Assigning tool_id={tool_id}.")
+                # Fetch all tool records
+                rows = cursor.fetchall()
 
-        try:
-            name = item['name'].strip()
-            category = item['category'].strip()
-            features = [feature.strip().lower()
-                        for feature in item.get('features', []) if feature.strip()]
-            cost = str(item['cost'])
-            description = item['description'].strip()
-            url = item['url'].strip()
-            language = item['language'].strip()
-            platform = item['platform'].strip()
-        except KeyError as ke:
-            raise KeyError(
-                f"Missing required field {ke} in JSON item {index}.")
-        except ValueError as ve:
-            raise ValueError(
-                f"Invalid data format in JSON item {index}: {str(ve)}")
+                # Iterate over each record and create Tool instances
+                for row in rows:
+                    tool_id, name, category, features, cost, description, url, language, platform = row
 
-        tool = Tool(
-            tool_id=tool_id,
-            name=name,
-            category=category,
-            features=features,
-            cost=cost,
-            description=description,
-            url=url,
-            language=language,
-            platform=platform
-        )
-        tools.append(tool)
+                    # Convert features string to list
+                    features_list = [feature.strip().lower()
+                                     for feature in features.split(';') if feature.strip()]
+
+                    # Create Tool instance
+                    tool = Tool(
+                        tool_id=tool_id,
+                        name=name,
+                        category=category,
+                        features=features_list,
+                        cost=cost,
+                        description=description,
+                        url=url,
+                        language=language,
+                        platform=platform
+                    )
+                    tools.append(tool)
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        raise RuntimeError(
+            f"Error loading tools from the database: {error}") from error
 
     return tools
 
 
-def load_tools_from_csv(csv_filename='tools.csv'):
+def load_users_from_db():
     """
-    Loads tools from a CSV file.
-
-    Args:
-        csv_filename (str): The name of the CSV file containing tool data.
-                            Defaults to 'tools.csv'.
+    Loads user data from the PostgreSQL database.
 
     Returns:
-        list: A list of Tool instances.
+        list: A list of dictionaries representing users.
 
     Raises:
-        FileNotFoundError: If the CSV file is not found.
-        KeyError: If required fields are missing in the CSV data.
-        ValueError: If tool_id is missing or not an integer.
+        RuntimeError: If there's an error connecting to the database or querying data.
     """
-    tools = []
-    required_fields = ['tool_id', 'name', 'category', 'features',
-                       'cost', 'description', 'url', 'platform', 'language']
-    csv_path = os.path.join(os.path.dirname(
-        os.path.abspath(__file__)), 'data', csv_filename)
+    users = []
 
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(
-            f"CSV file '{csv_filename}' not found in 'labmateai/data/' directory.")
+    try:
+        # Establish a connection to the PostgreSQL database using a context manager
+        with psycopg2.connect(**DB_CONFIG) as conn:
+            with conn.cursor() as cursor:
+                # Execute SQL query to get user data
+                query = """
+                    SELECT user_id, user_name, email, department, role
+                    FROM users;
+                """
+                cursor.execute(query)
 
-    with open(csv_path, mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
+                # Fetch all user records
+                rows = cursor.fetchall()
 
-        # Check for missing required fields in headers
-        missing_fields = [
-            field for field in required_fields if field not in reader.fieldnames]
-        if missing_fields:
-            raise KeyError(
-                f"CSV file '{csv_filename}' is missing required fields: {', '.join(missing_fields)}.")
+                # Iterate over each record to create user dictionaries
+                for row in rows:
+                    user_id, user_name, email, department, role = row
+                    user = {
+                        'user_id': user_id,
+                        'user_name': user_name,
+                        'email': email,
+                        'department': department,
+                        'role': role
+                    }
+                    users.append(user)
 
-        # start=2 to account for header
-        for row_num, row in enumerate(reader, start=2):
-            try:
-                tool_id = int(row['tool_id'])
-            except ValueError:
-                raise ValueError(
-                    f"Invalid 'tool_id' at row {row_num}. Must be an integer.")
+    except (Exception, psycopg2.DatabaseError) as error:
+        raise RuntimeError(
+            f"Error loading users from the database: {error}") from error
 
-            try:
-                name = row['name'].strip()
-                category = row['category'].strip()
-                features = [feature.strip().lower()
-                            for feature in row['features'].split(';') if feature.strip()]
-                cost = str(row['cost'])
-                description = row['description'].strip()
-                url = row['url'].strip()
-                language = row['language'].strip()
-                platform = row['platform'].strip()
-            except KeyError as ke:
-                raise KeyError(
-                    f"Missing required field {ke} at row {row_num} in CSV.")
-            except ValueError as ve:
-                raise ValueError(
-                    f"Invalid data format at row {row_num} in CSV: {str(ve)}")
+    return users
 
-            tool = Tool(
-                tool_id=tool_id,
-                name=name,
-                category=category,
-                features=features,
-                cost=cost,
-                description=description,
-                url=url,
-                language=language,
-                platform=platform
-            )
-            tools.append(tool)
 
-    return tools
+def load_interactions_from_db():
+    """
+    Loads interaction data from the PostgreSQL database.
+
+    Returns:
+        list: A list of dictionaries representing interactions.
+
+    Raises:
+        RuntimeError: If there's an error connecting to the database or querying data.
+    """
+    interactions = []
+
+    try:
+        # Establish a connection to the PostgreSQL database using a context manager
+        with psycopg2.connect(**DB_CONFIG) as conn:
+            with conn.cursor() as cursor:
+                # Execute SQL query to get interaction data
+                query = """
+                    SELECT interaction_id, user_id, tool_id, rating, usage_frequency, timestamp
+                    FROM interactions;
+                """
+                cursor.execute(query)
+
+                # Fetch all interaction records
+                rows = cursor.fetchall()
+
+                # Iterate over each record to create interaction dictionaries
+                for row in rows:
+                    interaction_id, user_id, tool_id, rating, usage_frequency, timestamp = row
+                    interaction = {
+                        'interaction_id': interaction_id,
+                        'user_id': user_id,
+                        'tool_id': tool_id,
+                        'rating': rating,
+                        'usage_frequency': usage_frequency,
+                        'timestamp': timestamp
+                    }
+                    interactions.append(interaction)
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        raise RuntimeError(
+            f"Error loading interactions from the database: {error}") from error
+
+    return interactions
