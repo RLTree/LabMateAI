@@ -1,8 +1,14 @@
 # hybrid_recommender.py
 
+"""
+This module provides the HybridRecommender class, which combines content-based and collaborative filtering
+to generate hybrid recommendations for users.
+"""
+
+
+import pandas as pd
 from .collaborative_recommender import CollaborativeRecommender
 from .recommender import Recommender
-import pandas as pd
 
 
 class HybridRecommender:
