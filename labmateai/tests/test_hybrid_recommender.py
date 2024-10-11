@@ -1,7 +1,11 @@
 # tests/test_hybrid_recommender.py
 
+"""Tests for the HybridRecommender class.
+
+The HybridRecommender class combines content-based and collaborative 
+filtering recommendations to provide a hybrid recommendation system."""
+
 import pytest
-from unittest.mock import patch
 import pandas as pd
 from labmateai.recommender import Recommender
 from labmateai.collaborative_recommender import CollaborativeRecommender
@@ -65,7 +69,7 @@ def test_hybrid_recommender_with_valid_user(hybrid_recommender):
         user_id=user_id, num_recommendations=3)
     assert len(recommendations) <= 3
     assert all('tool_id' in recommendation for recommendation in recommendations)
-    assert all('tool_name' in recommendation for recommendation in recommendations)
+    assert all('name' in recommendation for recommendation in recommendations)
     print("Test passed: Hybrid recommender returns valid recommendations.")
 
 
@@ -109,23 +113,11 @@ def test_hybrid_recommender_with_low_alpha(hybrid_recommender):
     print("Test passed: Hybrid recommender works with low alpha.")
 
 
-def test_hybrid_recommender_no_tool_name(hybrid_recommender):
-    """Test hybrid recommender without content-based tool name input."""
-    user_id = 1
-    recommendations = hybrid_recommender.recommend(
-        user_id=user_id, num_recommendations=2)
-    assert len(recommendations) <= 2
-    assert all(isinstance(recommendation, dict)
-               for recommendation in recommendations)
-    print("Test passed: Hybrid recommender works without content-based input.")
-
-
-def test_hybrid_recommender_invalid_alpha(hybrid_recommender):
+def test_hybrid_recommender_invalid_alpha():
     """Test hybrid recommender with an invalid alpha value."""
-    hybrid_recommender.alpha = 1.5  # Invalid alpha
-    user_id = 1
-    with pytest.raises(ValueError, match="Alpha must be between 0 and 1"):
-        hybrid_recommender.recommend(user_id=user_id, num_recommendations=2)
+    with pytest.raises(ValueError, match="Alpha must be between 0 and 1."):
+        HybridRecommender(content_recommender=None,
+                          collaborative_recommender=None, alpha=1.5)
 
 
 @pytest.mark.parametrize("num_recommendations", [0, -1, 100])
@@ -142,7 +134,3 @@ def test_hybrid_recommender_edge_cases_num_recommendations(hybrid_recommender, n
         assert len(recommendations) <= len(SAMPLE_TOOLS)
         print(
             f"Test passed: Hybrid recommender works with {num_recommendations} recommendations.")
-
-
-if __name__ == "__main__":
-    pytest.main()

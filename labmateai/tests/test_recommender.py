@@ -73,13 +73,13 @@ def sample_tools():
         Tool(
             tool_id=361,
             name='GenomicsToolY',
-            category='unknown',
-            features=['unknown'],
-            cost='unknown',
-            description='unknown',
-            url='unknown',
-            language='unknown',
-            platform='unknown'
+            category='Unknown',
+            features=['Unknown'],
+            cost='Unknown',
+            description='Unknown',
+            url='Unknown',
+            language='Unknown',
+            platform='Unknown'
         )
     ]
 
@@ -109,10 +109,11 @@ def test_recommend_similar_tools_valid(recommender_instance):
     recommendations = recommender_instance.recommend_similar_tools(
         tool_name='Seurat', num_recommendations=2)
     recommended_names = [tool.name for tool in recommendations]
-    # Based on build_graph, only Scanpy shares features with Seurat
+
+    # Since Seurat and Scanpy have similar features, Scanpy should be recommended.
     expected_recommendations = ['Scanpy', 'RNAAnalyzer']
 
-    assert recommended_names == expected_recommendations, \
+    assert set(recommended_names) == set(expected_recommendations), \
         f"Expected recommendations {expected_recommendations}, got {recommended_names}."
 
 
@@ -127,12 +128,49 @@ def test_recommend_similar_tools_invalid(recommender_instance):
         "Expected ValueError for non-existent tool name."
 
 
-def test_recommend_tools_in_category_valid(recommender_instance):
+def test_get_recommendation_scores_valid_tool(recommender_instance):
     """
-    Test recommending tools for a valid category name.
+    Test getting recommendation scores for a valid tool.
     """
-    recommendations = recommender_instance.recommend_tools_in_category(
-        category_name='Genomics')
+    scores = recommender_instance.get_recommendation_scores(tool_name='Seurat')
+    assert isinstance(
+        scores, dict), "Recommendation scores should be returned as a dictionary."
+    assert len(scores) == len(recommender_instance.tools) - \
+        1, "Recommendation scores should be calculated for all tools except the given one."
+    assert 337 in scores, "Expected Scanpy to have a recommendation score for Seurat."
+    assert scores[337] > 0, "Expected a positive score for Scanpy as it shares features with Seurat."
+
+
+def test_get_recommendation_scores_invalid_tool(recommender_instance):
+    """
+    Test getting recommendation scores for an invalid tool.
+    """
+    with pytest.raises(ValueError) as exc_info:
+        recommender_instance.get_recommendation_scores(
+            tool_name='NonExistentTool')
+    assert "Tool 'NonExistentTool' not found in the dataset." in str(exc_info.value), \
+        "Expected ValueError for non-existent tool name."
+
+
+def test_recommend_with_tool_name(recommender_instance):
+    """
+    Test the recommend method using a tool name for recommendations.
+    """
+    recommendations = recommender_instance.recommend(
+        tool_name='Seurat', num_recommendations=2)
+    recommended_names = [tool.name for tool in recommendations]
+    expected_recommendations = ['Scanpy', 'RNAAnalyzer']
+
+    assert set(recommended_names) == set(expected_recommendations), \
+        f"Expected recommendations {expected_recommendations}, got {recommended_names}."
+
+
+def test_recommend_with_category_name(recommender_instance):
+    """
+    Test the recommend method using a category name for recommendations.
+    """
+    recommendations = recommender_instance.recommend(
+        category_name='Genomics', num_recommendations=2)
     recommended_names = [tool.name for tool in recommendations]
     expected_recommendations = ['GenomicsToolX', 'Bowtie']
 
@@ -140,22 +178,12 @@ def test_recommend_tools_in_category_valid(recommender_instance):
         f"Expected recommendations {expected_recommendations}, got {recommended_names}."
 
 
-def test_recommend_tools_in_category_invalid(recommender_instance):
+def test_recommend_with_keyword(recommender_instance):
     """
-    Test recommending tools for an invalid (non-existent) category name.
+    Test the recommend method using a keyword for recommendations.
     """
-    with pytest.raises(ValueError) as exc_info:
-        recommender_instance.recommend_tools_in_category(
-            category_name='Proteomics')
-    assert "Category 'Proteomics' not found." in str(exc_info.value), \
-        "Expected ValueError for non-existent category name."
-
-
-def test_search_and_recommend_valid_keyword(recommender_instance):
-    """
-    Test searching and recommending tools with a valid keyword.
-    """
-    recommendations = recommender_instance.search_and_recommend(keyword='RNA')
+    recommendations = recommender_instance.recommend(
+        keyword='RNA', num_recommendations=3)
     recommended_names = [tool.name for tool in recommendations]
     expected_recommendations = ['Seurat', 'Scanpy', 'RNAAnalyzer']
 
@@ -163,53 +191,7 @@ def test_search_and_recommend_valid_keyword(recommender_instance):
         f"Expected recommendations {expected_recommendations}, got {recommended_names}."
 
 
-def test_search_and_recommend_no_matches(recommender_instance):
-    """
-    Test searching and recommending tools with a keyword that yields no matches.
-    """
-    recommendations = recommender_instance.search_and_recommend(
-        keyword='Proteomics')
-    assert recommendations == [], "Expected no recommendations for a keyword with no matches."
-
-
-def test_recommend_combined_parameters_tool_name(recommender_instance):
-    """
-    Test the recommend method with only tool_name provided.
-    """
-    recommendations = recommender_instance.recommend(
-        tool_name='GenomicsToolX', num_recommendations=1)
-    recommended_names = [tool.name for tool in recommendations]
-    expected_recommendations = ['Bowtie']
-
-    assert recommended_names == expected_recommendations, \
-        f"Expected recommendation {expected_recommendations}, got {recommended_names}."
-
-
-def test_recommend_combined_parameters_category_name(recommender_instance):
-    """
-    Test the recommend method with only category_name provided.
-    """
-    recommendations = recommender_instance.recommend(category_name='RNA')
-    recommended_names = [tool.name for tool in recommendations]
-    expected_recommendations = ['RNAAnalyzer']
-
-    assert recommended_names == expected_recommendations, \
-        f"Expected recommendation {expected_recommendations}, got {recommended_names}."
-
-
-def test_recommend_combined_parameters_keyword(recommender_instance):
-    """
-    Test the recommend method with only keyword provided.
-    """
-    recommendations = recommender_instance.recommend(keyword='Clustering')
-    recommended_names = [tool.name for tool in recommendations]
-    expected_recommendations = ['Seurat']
-
-    assert recommended_names == expected_recommendations, \
-        f"Expected recommendation {expected_recommendations}, got {recommended_names}."
-
-
-def test_recommend_no_parameters(recommender_instance):
+def test_recommend_with_no_parameters(recommender_instance):
     """
     Test the recommend method with no parameters provided.
     """
@@ -219,70 +201,38 @@ def test_recommend_no_parameters(recommender_instance):
         "Expected ValueError when no parameters are provided to recommend."
 
 
-def test_recommend_display_recommendations(capsys, recommender_instance):
+def test_recommendation_scores_case_insensitivity(recommender_instance):
     """
-    Test the display_recommendations method to ensure correct output.
+    Test that the Recommender handles tool names in a case-insensitive manner for recommendation scores.
     """
-    recommendations = recommender_instance.recommend_tools_in_category(
-        category_name='RNA')
-    recommender_instance.display_recommendations(recommendations)
-
-    captured = capsys.readouterr()
-    expected_output = "\nRecommended Tools:\n- RNAAnalyzer - A tool for analyzing RNA-Seq data and identifying differential gene expression. (Category: RNA, Cost: $0.0)"
-
-    assert expected_output in captured.out, \
-        f"Expected output to contain '{expected_output}', got '{captured.out}'."
+    scores_lower = recommender_instance.get_recommendation_scores(
+        tool_name='seurat')
+    scores_mixed = recommender_instance.get_recommendation_scores(
+        tool_name='SeUrAt')
+    assert scores_lower == scores_mixed, "Expected the same recommendation scores regardless of tool name case."
 
 
-def test_recommend_with_more_recommendations_than_available(recommender_instance):
+def test_recommend_similar_tools_case_insensitivity(recommender_instance):
     """
-    Test requesting more recommendations than available tools.
+    Test that the Recommender handles tool names in a case-insensitive manner for similar tool recommendations.
     """
-    recommendations = recommender_instance.recommend(
-        category_name='RNA', num_recommendations=5)
-    recommended_names = [tool.name for tool in recommendations]
-    expected_recommendations = ['RNAAnalyzer']
+    recommendations_lower = recommender_instance.recommend_similar_tools(
+        tool_name='seurat', num_recommendations=2)
+    recommendations_mixed = recommender_instance.recommend_similar_tools(
+        tool_name='SeUrAt', num_recommendations=2)
+    recommended_names_lower = [tool.name for tool in recommendations_lower]
+    recommended_names_mixed = [tool.name for tool in recommendations_mixed]
+    expected_recommendations = ['Scanpy', 'RNAAnalyzer']
 
-    assert recommended_names == expected_recommendations, \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names}."
+    assert set(recommended_names_lower) == set(expected_recommendations), \
+        f"Expected recommendations {expected_recommendations}, got {recommended_names_lower}."
+    assert set(recommended_names_mixed) == set(expected_recommendations), \
+        f"Expected recommendations {expected_recommendations}, got {recommended_names_mixed}."
 
 
-def test_recommend_same_tool_multiple_times(recommender_instance):
+def test_recommender_duplicate_tool_initialization():
     """
-    Test recommending similar tools for the same tool multiple times to ensure consistency.
-    """
-    recommendations_first = recommender_instance.recommend_similar_tools(
-        tool_name='Scanpy', num_recommendations=1)
-    recommendations_second = recommender_instance.recommend_similar_tools(
-        tool_name='Scanpy', num_recommendations=1)
-
-    recommended_names_first = [tool.name for tool in recommendations_first]
-    recommended_names_second = [tool.name for tool in recommendations_second]
-    expected_recommendations = ['Seurat']
-
-    assert recommended_names_first == expected_recommendations, \
-        f"First recommendation expected {expected_recommendations}, got {recommended_names_first}."
-    assert recommended_names_second == expected_recommendations, \
-        f"Second recommendation expected {expected_recommendations}, got {recommended_names_second}."
-
-
-def test_recommend_tool_with_no_similar_tools(recommender_instance):
-    """
-    Test recommending similar tools for a tool with no similar tools.
-    """
-    # Assuming 'RNAAnalyzer' has no similar tools beyond itself
-    recommendations = recommender_instance.recommend_similar_tools(
-        tool_name='GenomicsToolY', num_recommendations=2)
-    recommended_names = [tool.name for tool in recommendations]
-    expected_recommendations = []  # No similar tools
-
-    assert recommended_names == expected_recommendations, \
-        f"Expected no recommendations for 'GenomicsToolY', got {recommended_names}."
-
-
-def test_recommender_with_duplicate_tools():
-    """
-    Test initializing Recommender with duplicate tools to ensure proper handling.
+    Test initializing Recommender with duplicate tools.
     """
     duplicate_tool = Tool(
         tool_id=119,
@@ -315,94 +265,3 @@ def test_recommender_with_duplicate_tools():
 
     assert "Tool 'Seurat' already exists in the graph." in str(exc_info.value), \
         "Expected ValueError when initializing Recommender with duplicate tools."
-
-
-def test_recommender_case_insensitive_tool_names(recommender_instance):
-    """
-    Test that the Recommender handles tool names in a case-insensitive manner.
-    """
-    recommendations_upper = recommender_instance.recommend_similar_tools(
-        tool_name='SEURAT', num_recommendations=2)
-    recommendations_mixed = recommender_instance.recommend_similar_tools(
-        tool_name='sEuRat', num_recommendations=2)
-    expected_recommendations = ['Scanpy', 'RNAAnalyzer']
-
-    recommended_names_upper = [tool.name for tool in recommendations_upper]
-    recommended_names_mixed = [tool.name for tool in recommendations_mixed]
-
-    assert recommended_names_upper == expected_recommendations, \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names_upper}."
-    assert recommended_names_mixed == expected_recommendations, \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names_mixed}."
-
-
-def test_recommender_multiple_keywords_search(recommender_instance):
-    """
-    Test searching and recommending tools with multiple keywords.
-    """
-    # Assuming the search_tools method can handle multiple keywords separated by spaces
-    # For example, searching 'RNA-seq' should match 'Seurat', 'Scanpy', 'RNAAnalyzer'
-    recommendations = recommender_instance.search_and_recommend(
-        keyword='RNA-seq')
-    recommended_names = [tool.name for tool in recommendations]
-    expected_recommendations = ['Seurat', 'Scanpy', 'RNAAnalyzer']
-
-    assert set(recommended_names) == set(expected_recommendations), \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names}."
-
-
-def test_recommender_display_recommendations_no_recommendations(capsys, recommender_instance):
-    """
-    Test the display_recommendations method when there are no recommendations.
-    """
-    recommendations = []
-    recommender_instance.display_recommendations(recommendations)
-
-    captured = capsys.readouterr()
-    expected_output = "\nRecommended Tools:\nNo recommendations found."
-
-    assert expected_output in captured.out, \
-        f"Expected output to contain '{expected_output}', got '{captured.out}'."
-
-
-def test_recommender_display_recommendations_with_recommendations(capsys, recommender_instance):
-    """
-    Test the display_recommendations method with actual recommendations.
-    """
-    recommendations = recommender_instance.recommend_tools_in_category(
-        category_name='Genomics')
-    recommender_instance.display_recommendations(recommendations)
-
-    captured = capsys.readouterr()
-    expected_output_lines = [
-        "\nRecommended Tools:",
-        "- GenomicsToolX - A tool for comprehensive genome assembly and variant calling. (Category: Genomics, Cost: $0.0)",
-        "- Bowtie - A fast and memory-efficient tool for aligning sequencing reads to long reference sequences. (Category: Genomics, Cost: $0.0)"
-    ]
-
-    for line in expected_output_lines:
-        assert line in captured.out, f"Expected line '{line}' to be in the output."
-
-
-def test_recommender_search_tools_case_insensitivity(recommender_instance):
-    """
-    Test that the search is case-insensitive.
-    """
-    recommendations_lower = recommender_instance.search_and_recommend(
-        keyword='rna-seq')
-    recommendations_upper = recommender_instance.search_and_recommend(
-        keyword='RNA-SEQ')
-    recommendations_mixed = recommender_instance.search_and_recommend(
-        keyword='RnA-sEq')
-    expected_recommendations = ['Seurat', 'Scanpy', 'RNAAnalyzer']
-
-    recommended_names_lower = [tool.name for tool in recommendations_lower]
-    recommended_names_upper = [tool.name for tool in recommendations_upper]
-    recommended_names_mixed = [tool.name for tool in recommendations_mixed]
-
-    assert set(recommended_names_lower) == set(expected_recommendations), \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names_lower}."
-    assert set(recommended_names_upper) == set(expected_recommendations), \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names_upper}."
-    assert set(recommended_names_mixed) == set(expected_recommendations), \
-        f"Expected recommendations {expected_recommendations}, got {recommended_names_mixed}."

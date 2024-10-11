@@ -13,6 +13,8 @@ Classes:
 
 import os
 import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
 from .graph import Graph
 from .tree import ToolTree
 from .tool import Tool
@@ -87,8 +89,26 @@ class Recommender:
                            for tool in tools}  # For case-insensitive matching
         self.build_recommendation_system()
 
-        # Uncomment to print loaded tools
-        # print(f"Loaded tools: {[tool.name for tool in self.tools]}")
+        # Preprocess tools for content-based filtering
+        self.tools_df = pd.DataFrame([tool.__dict__ for tool in tools])
+        self.tools_df['combined_features'] = self.tools_df.apply(
+            lambda row: self._combine_features(row), axis=1
+        )
+        self.vectorizer = CountVectorizer().fit_transform(
+            self.tools_df['combined_features'])
+        self.similarity_matrix = cosine_similarity(self.vectorizer)
+
+    def _combine_features(self, row):
+        """
+        Combine selected features into a single string for each tool.
+
+        Args:
+            row (pd.Series): A row from the tools DataFrame.
+
+        Returns:
+            str: A string combining the features for content-based similarity calculations.
+        """
+        return f"{row['name']} {row['category']} {' '.join(row['features'])} {row['language']} {row['platform']}"
 
     def build_recommendation_system(self):
         """
@@ -192,6 +212,33 @@ class Recommender:
 
         return recommendations
 
+    def get_recommendation_scores(self, tool_name: str) -> dict:
+        """
+        Returns content-based recommendation scores for a given tool.
+
+        Args:
+            tool_name (str): The name of the tool for which to get recommendations.
+
+        Returns:
+            dict: Dictionary where keys are tool_ids and values are similarity scores.
+        """
+        if tool_name.lower() not in self.tools_df['name'].str.lower().values:
+            raise ValueError(f"Tool '{tool_name}' not found in the dataset.")
+
+        tool_index = self.tools_df[self.tools_df['name'].str.lower(
+        ) == tool_name.lower()].index[0]
+
+        # Get the similarity scores for the tool
+        similarity_scores = list(enumerate(self.similarity_matrix[tool_index]))
+
+        # Create a dictionary of tool_id and their corresponding similarity score
+        scores = {
+            self.tools_df.iloc[tool[0]]['tool_id']: round(tool[1], 3)
+            for tool in similarity_scores if tool[0] != tool_index
+        }
+
+        return scores
+
     def display_recommendations(self, recommendations):
         """
         Displays the recommended tools.
@@ -222,7 +269,7 @@ def main():
     tools = [
         Tool(
             tool_id=int(row['tool_id']),
-            name=row['tool_name'],
+            name=row['name'],
             category=row['category'],
             features=[feature.strip().lower()
                       for feature in row['features'].split(';') if feature.strip()],
@@ -232,14 +279,14 @@ def main():
             language=row['language'],
             platform=row['platform']
         )
-        for index, row in tools_df.iterrows()
+        for _, row in tools_df.iterrows()
     ]
 
     # Initialize the Recommender for content-based recommendations
     recommender = Recommender(tools)
 
     # Content-Based Recommendation Example
-    content_tool_name = "Flow Analyzer"  # Example tool name
+    content_tool_name = "ToolA"  # Example tool name
     try:
         content_recommendations = recommender.recommend(
             tool_name=content_tool_name,

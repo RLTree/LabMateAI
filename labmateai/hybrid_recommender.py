@@ -5,7 +5,6 @@ This module provides the HybridRecommender class, which combines content-based a
 to generate hybrid recommendations for users.
 """
 
-
 import pandas as pd
 from .collaborative_recommender import CollaborativeRecommender
 from .recommender import Recommender
@@ -25,6 +24,9 @@ class HybridRecommender:
             collaborative_recommender (CollaborativeRecommender): The collaborative filtering recommender instance.
             alpha (float): The weighting factor for combining CF and CBF scores (0 <= alpha <= 1).
         """
+        if not (0 <= alpha <= 1):
+            raise ValueError("Alpha must be between 0 and 1.")
+
         self.content_recommender = content_recommender
         self.collaborative_recommender = collaborative_recommender
         self.alpha = alpha
@@ -41,6 +43,9 @@ class HybridRecommender:
         Returns:
             list: A list of recommended tools.
         """
+        if num_recommendations < 1:
+            raise ValueError("n_recommendations must be at least 1.")
+
         # Get collaborative filtering recommendation scores
         collaborative_scores = self.collaborative_recommender.get_recommendation_scores(
             user_id)
@@ -49,6 +54,8 @@ class HybridRecommender:
         if tool_name:
             content_scores = self.content_recommender.get_recommendation_scores(
                 tool_name)
+            # Ensure it's a pandas Series
+            content_scores = pd.Series(content_scores)
         else:
             content_scores = pd.Series(0, index=collaborative_scores.index)
 

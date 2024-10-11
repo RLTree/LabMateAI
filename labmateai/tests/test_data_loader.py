@@ -1,399 +1,151 @@
 # tests/test_data_loader.py
 
 """
-Unit tests for the data_loader module.
+Unit tests for the data_loader module using the PostgreSQL database.
 """
 
-import json
 import pytest
-from labmateai.data_loader import load_tools_from_json, load_tools_from_csv
+from unittest.mock import patch, MagicMock
+from labmateai.data_loader import load_tools_from_db, load_users_from_db, load_interactions_from_db
 from labmateai.tool import Tool
 
-# Define sample JSON data for testing with tool_id
-SAMPLE_JSON = json.dumps([
-    {
-        "tool_id": 119,
-        "name": "Seurat",
-        "category": "Single-Cell Analysis",
-        "features": ["Single-cell RNA-seq", "Clustering"],
-        "cost": "Free",
-        "description": "An R package for single-cell RNA sequencing data.",
-        "url": "https://satijalab.org/seurat/",
-        "platform": "Cross-platform",
-        "language": "R"
-    },
-    {
-        "tool_id": 359,
-        "name": "GenomicsToolX",
-        "category": "Genomics",
-        "features": ["Genome Assembly", "Variant Calling"],
-        "cost": "Free",
-        "description": "A tool for comprehensive genome assembly and variant calling.",
-        "url": "https://genomicstoolx.com/",
-        "platform": "Cross-platform",
-        "language": "Python"
-    },
-    {
-        "tool_id": 360,
-        "name": "RNAAnalyzer",
-        "category": "RNA",
-        "features": ["RNA-Seq Analysis", "Differential Expression"],
-        "cost": "Free",
-        "description": "A tool for analyzing RNA-Seq data and identifying differential gene expression.",
-        "url": "https://rnaanalyzer.example.com/",
-        "platform": "Cross-platform",
-        "language": "R"
-    }
-])
+# Sample data for mocking database response
+SAMPLE_TOOLS_DB_ROWS = [
+    (119, 'Seurat', 'Single-Cell Analysis', 'Single-cell RNA-seq;Clustering', 'Free',
+     'An R package for single-cell RNA sequencing data.', 'https://satijalab.org/seurat/', 'R', 'Cross-platform'),
+    (359, 'GenomicsToolX', 'Genomics', 'Genome Assembly;Variant Calling', 'Free',
+     'A tool for comprehensive genome assembly and variant calling.', 'https://genomicstoolx.com/', 'Python', 'Cross-platform'),
+    (360, 'RNAAnalyzer', 'RNA', 'RNA-Seq Analysis;Differential Expression', 'Free',
+     'A tool for analyzing RNA-Seq data and identifying differential gene expression.', 'https://rnaanalyzer.example.com/', 'R', 'Cross-platform')
+]
 
-# Define sample CSV data for testing with tool_id
-SAMPLE_CSV = """tool_id,name,category,features,cost,description,url,platform,language
-1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
-2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",Python
-3,RNAAnalyzer,RNA,"RNA-Seq Analysis;Differential Expression",Free,"A tool for analyzing RNA-Seq data and identifying differential gene expression.","https://rnaanalyzer.example.com/","Cross-platform",R
-"""
+SAMPLE_USERS_DB_ROWS = [
+    (1, 'Alice', 'alice@example.com', 'Biology', 'Researcher'),
+    (2, 'Bob', 'bob@example.com', 'Genomics', 'Scientist'),
+    (3, 'Charlie', 'charlie@example.com', 'Bioinformatics', 'Lab Manager')
+]
+
+SAMPLE_INTERACTIONS_DB_ROWS = [
+    (1, 1, 119, 5, 'Daily', '2023-09-15 12:34:56'),
+    (2, 2, 359, 4, 'Weekly', '2023-09-16 09:15:32'),
+    (3, 3, 360, 3, 'Monthly', '2023-09-17 14:22:45')
+]
 
 
-@pytest.fixture
-def sample_json_data():
+@patch('psycopg2.connect')
+def test_load_tools_from_db_success(mock_connect):
     """
-    Fixture to provide sample JSON data.
-    """
-    return SAMPLE_JSON
-
-
-@pytest.fixture
-def sample_csv_data():
-    """
-    Fixture to provide sample CSV data.
-    """
-    return SAMPLE_CSV
-
-
-@pytest.fixture
-def expected_tools():
-    """
-    Fixture to provide expected Tool instances from SAMPLE_JSON.
-    """
-    return [
-        Tool(
-            tool_id=1,
-            name="Seurat",
-            category="Single-Cell Analysis",
-            features=["Single-cell RNA-seq", "Clustering"],
-            cost="Free",
-            description="An R package for single-cell RNA sequencing data.",
-            url="https://satijalab.org/seurat/",
-            platform="Cross-platform",
-            language="R"
-        ),
-        Tool(
-            tool_id=2,
-            name="GenomicsToolX",
-            category="Genomics",
-            features=["Genome Assembly", "Variant Calling"],
-            cost="Free",
-            description="A tool for comprehensive genome assembly and variant calling.",
-            url="https://genomicstoolx.com/",
-            platform="Cross-platform",
-            language="Python"
-        ),
-        Tool(
-            tool_id=3,
-            name="RNAAnalyzer",
-            category="RNA",
-            features=["RNA-Seq Analysis", "Differential Expression"],
-            cost="Free",
-            description="A tool for analyzing RNA-Seq data and identifying differential gene expression.",
-            url="https://rnaanalyzer.example.com/",
-            platform="Cross-platform",
-            language="R"
-        )
-    ]
-
-
-def test_load_tools_from_json_success(expected_tools, sample_json_data, mocker):
-    """
-    Test successful loading of tools from JSON.
+    Test successful loading of tools from the PostgreSQL database.
 
     Args:
-        expected_tools (list): Expected list of Tool instances.
-        sample_json_data (str): Sample JSON data.
-        mocker: Pytest mocker fixture.
+        mock_connect: Mock for psycopg2.connect.
     """
-    # Mock importlib.resources.open_text to return sample_json_data
-    mock_file = mocker.mock_open(read_data=sample_json_data)
-    mocker.patch('importlib.resources.open_text', mock_file)
+    # Setup the mock connection and cursor
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.__enter__.return_value = mock_conn
+    mock_cursor.__enter__.return_value = mock_cursor
 
-    tools = load_tools_from_json()
+    # Mock the behavior of connect and cursor
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchall.return_value = SAMPLE_TOOLS_DB_ROWS
+    mock_connect.return_value = mock_conn
+
+    # Call the function and validate results
+    tools = load_tools_from_db()
     assert len(tools) == len(
-        expected_tools), f"Expected {len(expected_tools)} tools, got {len(tools)}."
+        SAMPLE_TOOLS_DB_ROWS), f"Expected {len(SAMPLE_TOOLS_DB_ROWS)} tools, got {len(tools)}."
 
-    for loaded_tool, expected_tool in zip(tools, expected_tools):
-        assert loaded_tool.tool_id == expected_tool.tool_id, f"Expected tool_id '{expected_tool.tool_id}', got '{loaded_tool.tool_id}'."
-        assert loaded_tool.name == expected_tool.name, f"Expected tool name '{expected_tool.name}', got '{loaded_tool.name}'."
-        assert loaded_tool.category == expected_tool.category, f"Expected category '{expected_tool.category}', got '{loaded_tool.category}'."
-        assert loaded_tool.features == expected_tool.features, f"Expected features {expected_tool.features}, got {loaded_tool.features}."
-        assert loaded_tool.cost == expected_tool.cost, f"Expected cost '{expected_tool.cost}', got '{loaded_tool.cost}'."
-        assert loaded_tool.description == expected_tool.description, f"Expected description '{expected_tool.description}', got '{loaded_tool.description}'."
-        assert loaded_tool.url == expected_tool.url, f"Expected URL '{expected_tool.url}', got '{loaded_tool.url}'."
-        assert loaded_tool.platform == expected_tool.platform, f"Expected platform '{expected_tool.platform}', got '{loaded_tool.platform}'."
-        assert loaded_tool.language == expected_tool.language, f"Expected language '{expected_tool.language}', got '{loaded_tool.language}'."
+    for tool, expected_row in zip(tools, SAMPLE_TOOLS_DB_ROWS):
+        assert tool.tool_id == expected_row[
+            0], f"Expected tool_id '{expected_row[0]}', got '{tool.tool_id}'."
+        assert tool.name == expected_row[
+            1], f"Expected tool name '{expected_row[1]}', got '{tool.name}'."
+        assert tool.category == expected_row[
+            2], f"Expected category '{expected_row[2]}', got '{tool.category}'."
+        assert tool.features == [feature.strip().lower() for feature in expected_row[3].split(';') if feature.strip()], \
+            f"Expected features '{expected_row[3]}', got '{tool.features}'."
+        assert tool.cost == expected_row[4], f"Expected cost '{expected_row[4]}', got '{tool.cost}'."
+        assert tool.description == expected_row[
+            5], f"Expected description '{expected_row[5]}', got '{tool.description}'."
+        assert tool.url == expected_row[6], f"Expected URL '{expected_row[6]}', got '{tool.url}'."
+        assert tool.language == expected_row[
+            7], f"Expected language '{expected_row[7]}', got '{tool.language}'."
+        assert tool.platform == expected_row[
+            8], f"Expected platform '{expected_row[8]}', got '{tool.platform}'."
 
 
-def test_load_tools_from_json_missing_required_fields(mocker):
+@patch('psycopg2.connect')
+def test_load_users_from_db_success(mock_connect):
     """
-    Test loading tools from JSON with missing required fields.
+    Test successful loading of users from the PostgreSQL database.
 
     Args:
-        mocker: Pytest mocker fixture.
+        mock_connect: Mock for psycopg2.connect.
     """
-    # JSON with missing 'features' and 'language'
-    incomplete_json = json.dumps([
-        {
-            "tool_id": 4,
-            "name": "IncompleteTool",
-            "category": "Bioinformatics",
-            "cost": "Free",
-            "description": "A tool with missing required fields.",
-            "url": "https://incomplete.example.com/",
-            "platform": "Cross-platform"
-            # 'features' and 'language' are missing
-        }
-    ])
-    mock_file = mocker.mock_open(read_data=incomplete_json)
-    mocker.patch('importlib.resources.open_text', mock_file)
+    # Setup the mock connection and cursor
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.__enter__.return_value = mock_conn
+    mock_cursor.__enter__.return_value = mock_cursor
 
-    with pytest.raises(KeyError) as exc_info:
-        load_tools_from_json()
-    assert "'features'" in str(exc_info.value) or "'language'" in str(exc_info.value), \
-        "Expected KeyError for missing 'features' or 'language' fields."
+    # Mock the behavior of connect and cursor
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchall.return_value = SAMPLE_USERS_DB_ROWS
+    mock_connect.return_value = mock_conn
+
+    # Call the function and validate results
+    users = load_users_from_db()
+    assert len(users) == len(
+        SAMPLE_USERS_DB_ROWS), f"Expected {len(SAMPLE_USERS_DB_ROWS)} users, got {len(users)}."
+
+    for user, expected_row in zip(users, SAMPLE_USERS_DB_ROWS):
+        assert user['user_id'] == expected_row[
+            0], f"Expected user_id '{expected_row[0]}', got '{user['user_id']}'."
+        assert user['user_name'] == expected_row[
+            1], f"Expected user_name '{expected_row[1]}', got '{user['user_name']}'."
+        assert user['email'] == expected_row[
+            2], f"Expected email '{expected_row[2]}', got '{user['email']}'."
+        assert user['department'] == expected_row[
+            3], f"Expected department '{expected_row[3]}', got '{user['department']}'."
+        assert user['role'] == expected_row[
+            4], f"Expected role '{expected_row[4]}', got '{user['role']}'."
 
 
-def test_load_tools_from_json_invalid_json(mocker):
+@patch('psycopg2.connect')
+def test_load_interactions_from_db_success(mock_connect):
     """
-    Test loading tools from malformed JSON.
+    Test successful loading of interactions from the PostgreSQL database.
 
     Args:
-        mocker: Pytest mocker fixture.
+        mock_connect: Mock for psycopg2.connect.
     """
-    malformed_json = "{ this is not: valid JSON }"
-    mock_file = mocker.mock_open(read_data=malformed_json)
-    mocker.patch('importlib.resources.open_text', mock_file)
+    # Setup the mock connection and cursor
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.__enter__.return_value = mock_conn
+    mock_cursor.__enter__.return_value = mock_cursor
 
-    with pytest.raises(json.JSONDecodeError):
-        load_tools_from_json()
+    # Mock the behavior of connect and cursor
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchall.return_value = SAMPLE_INTERACTIONS_DB_ROWS
+    mock_connect.return_value = mock_conn
 
+    # Call the function and validate results
+    interactions = load_interactions_from_db()
+    assert len(interactions) == len(
+        SAMPLE_INTERACTIONS_DB_ROWS), f"Expected {len(SAMPLE_INTERACTIONS_DB_ROWS)} interactions, got {len(interactions)}."
 
-def test_load_tools_from_csv_success(expected_tools, sample_csv_data, tmp_path):
-    """
-    Test successful loading of tools from CSV.
-
-    Args:
-        expected_tools (list): Expected list of Tool instances.
-        sample_csv_data (str): Sample CSV data.
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    # Create a temporary CSV file
-    csv_file = tmp_path / "tools.csv"
-    csv_file.write_text(sample_csv_data, encoding='utf-8')
-
-    tools = load_tools_from_csv(str(csv_file))
-    assert len(tools) == len(
-        expected_tools), f"Expected {len(expected_tools)} tools, got {len(tools)}."
-
-    for loaded_tool, expected_tool in zip(tools, expected_tools):
-        assert loaded_tool.tool_id == expected_tool.tool_id, f"Expected tool_id '{expected_tool.tool_id}', got '{loaded_tool.tool_id}'."
-        assert loaded_tool.name == expected_tool.name, f"Expected tool name '{expected_tool.name}', got '{loaded_tool.name}'."
-        assert loaded_tool.category == expected_tool.category, f"Expected category '{expected_tool.category}', got '{loaded_tool.category}'."
-        assert loaded_tool.features == expected_tool.features, f"Expected features '{expected_tool.features}', got '{loaded_tool.features}'."
-        assert loaded_tool.cost == expected_tool.cost, f"Expected cost '{expected_tool.cost}', got '{loaded_tool.cost}'."
-        assert loaded_tool.description == expected_tool.description, f"Expected description '{expected_tool.description}', got '{loaded_tool.description}'."
-        assert loaded_tool.url == expected_tool.url, f"Expected URL '{expected_tool.url}', got '{loaded_tool.url}'."
-        assert loaded_tool.platform == expected_tool.platform, f"Expected platform '{expected_tool.platform}', got '{loaded_tool.platform}'."
-        assert loaded_tool.language == expected_tool.language, f"Expected language '{expected_tool.language}', got '{loaded_tool.language}'."
-
-
-@pytest.mark.parametrize("csv_data, expected_tool_count, expected_tool_names, expect_error", [
-    # Valid CSV with three tools
-    ("""tool_id,name,category,features,cost,description,url,platform,language
-1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
-2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",Python
-3,RNAAnalyzer,RNA,"RNA-Seq Analysis;Differential Expression",Free,"A tool for analyzing RNA-Seq data and identifying differential gene expression.","https://rnaanalyzer.example.com/","Cross-platform",R
-""",
-     3,
-     ["Seurat", "GenomicsToolX", "RNAAnalyzer"],
-     False),
-    # CSV with missing 'language' field (empty)
-    ("""tool_id,name,category,features,cost,description,url,platform,language
-4,IncompleteTool,Bioinformatics,"Feature1;Feature2",Free,"A tool with missing language field.","https://incomplete.example.com/","Cross-platform",
-""",
-     1,
-     ["IncompleteTool"],
-     True),
-    # CSV with empty 'features'
-    ("""tool_id,name,category,features,cost,description,url,platform,language
-5,ToolWithNoFeatures,Bioinformatics,"",Free,"A tool with no features.","https://toolwithnofeatures.example.com/","Cross-platform",Java
-""",
-     1,
-     ["ToolWithNoFeatures"],
-     True),
-])
-def test_load_tools_from_csv_various_cases(csv_data, expected_tool_count, expected_tool_names, expect_error, tmp_path):
-    """
-    Test loading tools from CSV with various scenarios.
-
-    Args:
-        csv_data (str): CSV data as string.
-        expected_tool_count (int): Expected number of Tool instances.
-        expected_tool_names (list): Expected names of tools.
-        expect_error (bool): Whether to expect an error.
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    # Create a temporary CSV file
-    csv_file = tmp_path / "tools_various.csv"
-    csv_file.write_text(csv_data, encoding='utf-8')
-
-    if expect_error:
-        with pytest.raises(KeyError):
-            load_tools_from_csv(str(csv_file))
-    else:
-        tools = load_tools_from_csv(str(csv_file))
-        assert len(
-            tools) == expected_tool_count, f"Expected {expected_tool_count} tools, got {len(tools)}."
-
-        retrieved_names = [tool.name for tool in tools]
-        for name in expected_tool_names:
-            assert name in retrieved_names, f"Expected tool '{name}' to be loaded from CSV."
-
-        # Additional checks
-        for tool in tools:
-            if not tool.features:
-                assert tool.features == [
-                ], f"Expected empty features list, got {tool.features}."
-            if not tool.language:
-                # Since 'language' is required and non-empty, this should not happen
-                pytest.fail(
-                    "Tool has empty 'language' field, but it should have raised KeyError.")
-
-
-def test_load_tools_from_csv_missing_required_fields(tmp_path):
-    """
-    Test loading tools from CSV with missing required fields.
-
-    Args:
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    # CSV missing 'language' field in the second row
-    malformed_csv = """tool_id,name,category,features,cost,description,url,platform,language
-1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
-2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform",
-"""
-    csv_file = tmp_path / "malformed_columns.csv"
-    csv_file.write_text(malformed_csv, encoding='utf-8')
-
-    with pytest.raises(KeyError) as exc_info:
-        load_tools_from_csv(str(csv_file))
-    assert "'language'" in str(
-        exc_info.value), "Expected KeyError for missing 'language' field."
-
-
-def test_load_tools_from_csv_malformed_csv(tmp_path):
-    """
-    Test loading tools from a malformed CSV file.
-
-    Args:
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    # Malformed CSV (uneven columns)
-    malformed_csv = """tool_id,name,category,features,cost,description,url,platform,language
-1,Seurat,Single-Cell Analysis,"Single-cell RNA-seq;Clustering",Free,"An R package for single-cell RNA sequencing data.","https://satijalab.org/seurat/","Cross-platform",R
-2,GenomicsToolX,Genomics,"Genome Assembly;Variant Calling",Free,"A tool for comprehensive genome assembly and variant calling.","https://genomicstoolx.com/","Cross-platform"
-"""
-    csv_file = tmp_path / "malformed_columns.csv"
-    csv_file.write_text(malformed_csv, encoding='utf-8')
-
-    with pytest.raises(KeyError) as exc_info:
-        load_tools_from_csv(str(csv_file))
-    assert "'language'" in str(
-        exc_info.value), "Expected KeyError for missing 'language' field."
-
-
-def test_load_tools_from_csv_features_parsing(tmp_path):
-    """
-    Test that features are correctly parsed from semicolon-separated string.
-
-    Args:
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    csv_data = """tool_id,name,category,features,cost,description,url,platform,language
-6,BioToolY,Bioinformatics,"Feature1;Feature2;Feature3",Free,"A bioinformatics tool for data analysis.","https://biotooly.example.com/","Cross-platform",C++
-"""
-    csv_file = tmp_path / "features_parsing.csv"
-    csv_file.write_text(csv_data, encoding='utf-8')
-
-    tools = load_tools_from_csv(str(csv_file))
-    assert len(tools) == 1, f"Expected 1 tool, got {len(tools)}."
-
-    tool = tools[0]
-    expected_features = ["Feature1", "Feature2", "Feature3"]
-    assert tool.features == expected_features, f"Expected features {expected_features}, got {tool.features}."
-
-
-def test_load_tools_from_csv_extra_columns(tmp_path):
-    """
-    Test loading tools from CSV with extra columns that should be ignored.
-
-    Args:
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    csv_data = """tool_id,name,category,features,cost,description,url,platform,language,extra_column
-7,BioToolZ,Bioinformatics,"Feature4;Feature5",Free,"Another bioinformatics tool.","https://biotoolz.example.com/","Cross-platform",Ruby,ExtraValue
-"""
-    csv_file = tmp_path / "extra_columns.csv"
-    csv_file.write_text(csv_data, encoding='utf-8')
-
-    tools = load_tools_from_csv(str(csv_file))
-    assert len(tools) == 1, f"Expected 1 tool, got {len(tools)}."
-
-    tool = tools[0]
-    assert tool.name == "BioToolZ", f"Expected tool name 'BioToolZ', got '{tool.name}'."
-    assert tool.tool_id == 7, f"Expected tool_id '7', got '{tool.tool_id}'."
-    assert tool.language == "Ruby", f"Expected language 'Ruby', got '{tool.language}'."
-    # Extra column should be ignored since 'extra_column' is not used in Tool initialization
-    # No assertion needed for 'extra_column'
-
-
-def test_load_tools_from_csv_empty_file(tmp_path):
-    """
-    Test loading tools from an empty CSV file.
-
-    Args:
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    empty_csv = ""
-    csv_file = tmp_path / "empty.csv"
-    csv_file.write_text(empty_csv, encoding='utf-8')
-
-    with pytest.raises(KeyError) as exc_info:
-        load_tools_from_csv(str(csv_file))
-    assert "CSV file is missing header." in str(
-        exc_info.value), "Expected KeyError for missing header."
-
-
-def test_load_tools_from_csv_only_headers(tmp_path):
-    """
-    Test loading tools from a CSV file that contains only headers.
-
-    Args:
-        tmp_path: Pytest fixture for temporary directory.
-    """
-    headers_only_csv = """tool_id,name,category,features,cost,description,url,platform,language
-"""
-    csv_file = tmp_path / "headers_only.csv"
-    csv_file.write_text(headers_only_csv, encoding='utf-8')
-
-    # Since headers are present but no data rows, it should not raise KeyError and return an empty list
-    tools = load_tools_from_csv(str(csv_file))
-    assert len(
-        tools) == 0, f"Expected 0 tools from headers-only CSV, got {len(tools)}."
+    for interaction, expected_row in zip(interactions, SAMPLE_INTERACTIONS_DB_ROWS):
+        assert interaction['interaction_id'] == expected_row[
+            0], f"Expected interaction_id '{expected_row[0]}', got '{interaction['interaction_id']}'."
+        assert interaction['user_id'] == expected_row[
+            1], f"Expected user_id '{expected_row[1]}', got '{interaction['user_id']}'."
+        assert interaction['tool_id'] == expected_row[
+            2], f"Expected tool_id '{expected_row[2]}', got '{interaction['tool_id']}'."
+        assert interaction['rating'] == expected_row[
+            3], f"Expected rating '{expected_row[3]}', got '{interaction['rating']}'."
+        assert interaction['usage_frequency'] == expected_row[
+            4], f"Expected usage_frequency '{expected_row[4]}', got '{interaction['usage_frequency']}'."
+        assert interaction['timestamp'] == expected_row[
+            5], f"Expected timestamp '{expected_row[5]}', got '{interaction['timestamp']}'."
