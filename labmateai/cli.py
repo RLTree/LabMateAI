@@ -7,8 +7,12 @@ This module provides the CLI class, which handles user interactions
 and provides tool recommendations based on user input.
 """
 
+import os
 import sys
 import psycopg2
+from psycopg2 import sql
+from dotenv import load_dotenv
+from labmateai.database import get_db_connection
 import pandas as pd
 from datetime import datetime
 from labmateai.recommender import Recommender, build_user_item_matrix
@@ -20,25 +24,25 @@ import logging
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
+# Load environment variables
+load_dotenv()
+
 
 class CLI:
     """
     Command-Line Interface for LabMateAI.
     """
 
-    def __init__(self, db_config=None):
+    def __init__(self):
         """
-        Initializes the CLI, but defers loading data and initializing recommenders.
-
-        Args:
-            db_config (dict): Database connection configuration.
+        Initializes the CLI and ensures the database is initialized.
         """
-        self.db_config = db_config or {
-            'dbname': 'labmate_db',
-            'user': 'postgres',   # Update with your DB username
-            'password': 'password',  # Update with your DB password
-            'host': 'localhost',  # Update with your host if different
-            'port': '1357'  # Default PostgreSQL port for LabMateAI
+        self.db_config = {
+            'dbname': os.getenv('DB_NAME', 'labmate_db'),
+            'user': os.getenv('DB_USER', 'postgres'),
+            'password': os.getenv('DB_PASSWORD', 'password'),
+            'host': os.getenv('DB_HOST', 'localhost'),
+            'port': os.getenv('DB_PORT', '1357')
         }
         self.tools = None
         self.recommender = None
@@ -46,40 +50,111 @@ class CLI:
         self.hybrid_recommender = None
         self.data_loaded = False
 
+        # Initialize the database (create tables and set sequences if needed)
+        self._initialize_database()
+
+    def _initialize_database(self):
+        """
+        Initializes the database by creating necessary tables and adjusting sequences.
+        """
+        try:
+            conn = psycopg2.connect(**self.db_config)
+            cursor = conn.cursor()
+
+            # Create users table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id SERIAL PRIMARY KEY,
+                    user_name VARCHAR(100) NOT NULL,
+                    email VARCHAR(100) UNIQUE NOT NULL,
+                    department VARCHAR(100),
+                    role VARCHAR(50)
+                );
+            """)
+
+            # Create tools table if it doesn't exist
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS tools (
+                    tool_id SERIAL PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    category VARCHAR(100),
+                    features TEXT,
+                    cost VARCHAR(50),
+                    description TEXT,
+                    url VARCHAR(255),
+                    language VARCHAR(50),
+                    platform VARCHAR(50)
+                );
+            """)
+
+            # Commit table creations
+            conn.commit()
+
+            # Adjust user_id sequence
+            cursor.execute("""
+                SELECT pg_get_serial_sequence('users', 'user_id');
+            """)
+            sequence_name = cursor.fetchone()[0]
+
+            cursor.execute("""
+                SELECT COALESCE(MAX(user_id), 100000) FROM users;
+            """)
+            max_user_id = cursor.fetchone()[0]
+
+            # Set the sequence to max_user_id (nextval will be max_user_id + 1)
+            cursor.execute(sql.SQL("SELECT setval(%s, %s, false);"), [
+                           sequence_name, max_user_id])
+
+            # Commit sequence adjustment
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            logging.info("Database initialized successfully.")
+        except psycopg2.Error as e:
+            logging.error(f"Database initialization failed: {e}")
+            sys.exit(1)
+
     def _get_or_create_user(self):
         """
         Handles user login or sign-up.
         """
-        conn = psycopg2.connect(**self.db_config)
-        cursor = conn.cursor()
+        try:
+            conn = psycopg2.connect(**self.db_config)
+            cursor = conn.cursor()
 
-        print("\n--- LabMateAI User Login/Signup ---")
-        email = input("Enter your email: ").strip().lower()
+            print("\n--- LabMateAI User Login/Signup ---")
+            email = input("Enter your email: ").strip().lower()
 
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            user = cursor.fetchone()
 
-        if user:
-            print(f"Welcome back, {user[1]}.")
-            user_id = user[0]
-        else:
-            print("No account found. Let's create a new one.")
-            user_name = input("Enter your full name: ").strip()
-            department = input("Enter your department: ").strip()
-            role = input(
-                "Enter your role (e.g., Researcher, Student): ").strip()
+            if user:
+                print(f"Welcome back, {user[1]}.")
+                user_id = user[0]
+            else:
+                print("No account found. Let's create a new one.")
+                user_name = input("Enter your full name: ").strip()
+                department = input("Enter your department: ").strip()
+                role = input(
+                    "Enter your role (e.g., Researcher, Student): ").strip()
 
-            cursor.execute("""
-            INSERT INTO users (user_name, email, department, role)
-            VALUES (%s, %s, %s, %s)
-            RETURNING user_id
-            """, (user_name, email, department, role))
-            user_id = cursor.fetchone()[0]
-            conn.commit()
-            print(f"User successfully signed up! Welcome, {user_name}.")
+                cursor.execute("""
+                INSERT INTO users (user_name, email, department, role)
+                VALUES (%s, %s, %s, %s)
+                RETURNING user_id
+                """, (user_name, email, department, role))
+                user_id = cursor.fetchone()[0]
+                conn.commit()
+                print(f"User successfully signed up! Welcome, {user_name}.")
 
-        conn.close()
-        return user_id
+            cursor.close()
+            conn.close()
+            return user_id
+        except psycopg2.Error as e:
+            logging.error(f"Database error during user login/signup: {e}")
+            sys.exit(1)
 
     def _log_interaction(self, user_id, tool_id, rating=None, usage_frequency=None):
         """
@@ -91,17 +166,22 @@ class CLI:
             rating (int, optional): User rating for the tool (0-5).
             usage_frequency (str, optional): Frequency of tool usage.
         """
-        conn = psycopg2.connect(**self.db_config)
-        cursor = conn.cursor()
+        try:
+            conn = psycopg2.connect(**self.db_config)
+            cursor = conn.cursor()
 
-        timestamp = datetime.now().isoformat()
+            timestamp = datetime.now().isoformat()
 
-        cursor.execute("""
-        INSERT INTO interactions (user_id, tool_id, rating, usage_frequency, timestamp)
-        VALUES (%s, %s, %s, %s, %s)
-        """, (user_id, tool_id, rating, usage_frequency, timestamp))
-        conn.commit()
-        conn.close()
+            cursor.execute("""
+            INSERT INTO interactions (user_id, tool_id, rating, usage_frequency, timestamp)
+            VALUES (%s, %s, %s, %s, %s)
+            """, (user_id, tool_id, rating, usage_frequency, timestamp))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except psycopg2.Error as e:
+            logging.error(f"Failed to log interaction: {e}")
+            print("An error occurred while logging your interaction. Please try again.")
 
     def _load_data_and_initialize_recommenders(self):
         """
@@ -184,6 +264,9 @@ class CLI:
                 tool_names = [tool.name for tool in self.tools]
                 logging.info(f"Loaded tools: {tool_names}")
 
+                cursor.close()
+                conn.close()
+
             except Exception as e:
                 raise RuntimeError(f"Failed to initialize CLI: {e}")
 
@@ -241,15 +324,20 @@ class CLI:
         """
         Handles rating a tool recommended to the user.
         """
-        tool_id = int(input("Enter the tool ID you want to rate: ").strip())
-        rating = int(input("Enter your rating for the tool (0-5): ").strip())
+        try:
+            tool_id = int(
+                input("Enter the tool ID you want to rate: ").strip())
+            rating = int(
+                input("Enter your rating for the tool (0-5): ").strip())
 
-        if 0 <= rating <= 5:
-            self._log_interaction(
-                user_id=user_id, tool_id=tool_id, rating=rating)
-            print("Thank you for your rating!")
-        else:
-            print("Invalid rating. Please enter a number between 0 and 5.")
+            if 0 <= rating <= 5:
+                self._log_interaction(
+                    user_id=user_id, tool_id=tool_id, rating=rating)
+                print("Thank you for your rating!")
+            else:
+                print("Invalid rating. Please enter a number between 0 and 5.")
+        except ValueError:
+            print("Invalid input. Please enter numeric values for tool ID and rating.")
 
     def start(self):
         """
@@ -287,3 +375,7 @@ class CLI:
 def main():
     cli = CLI()
     cli.start()
+
+
+if __name__ == "__main__":
+    main()

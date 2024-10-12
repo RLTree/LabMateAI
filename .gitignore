@@ -132,6 +132,10 @@ htmlcov/
 labmateai/data/*.json
 labmateai/data/*.csv
 labmateai/data/generate_sample_data.py
+labmateai/data/database/
 
 # Exclude sensitive files
 .vscode/settings.json
+
+# Environment variables
+.env

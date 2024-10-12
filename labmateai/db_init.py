@@ -1,125 +1,94 @@
+# db_init.py
+
 import psycopg2
 from psycopg2 import sql
 import os
+from dotenv import load_dotenv
+import sys
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Database connection parameters
+DB_CONFIG = {
+    'dbname': os.getenv('DB_NAME', 'labmate_db'),
+    'user': os.getenv('DB_USER', 'postgres'),
+    'password': os.getenv('DB_PASSWORD', 'password'),
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'port': os.getenv('DB_PORT', '1357')
+}
 
 
-def create_tables(conn):
-    """
-    Create tables in the PostgreSQL database.
-    """
-    commands = [
-        '''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id SERIAL PRIMARY KEY,
-            user_name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            department TEXT,
-            role TEXT
-        )
-        ''',
-        '''
-        CREATE TABLE IF NOT EXISTS tools (
-            tool_id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            category TEXT,
-            features TEXT,
-            cost TEXT,
-            description TEXT,
-            url TEXT,
-            language TEXT,
-            platform TEXT
-        )
-        ''',
-        '''
-        CREATE TABLE IF NOT EXISTS interactions (
-            interaction_id SERIAL PRIMARY KEY,
-            user_id INTEGER,
-            tool_id INTEGER,
-            rating INTEGER,
-            usage_frequency TEXT,
-            timestamp TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(user_id),
-            FOREIGN KEY(tool_id) REFERENCES tools(tool_id)
-        )
-        '''
-    ]
-
-    cursor = conn.cursor()
-    for command in commands:
-        cursor.execute(command)
-    conn.commit()
-    cursor.close()
-
-
-def insert_sample_data(conn):
-    """
-    Insert sample data into the PostgreSQL database.
-    """
-    cursor = conn.cursor()
-
-    # Insert sample users
-    users = [
-        ('Alice Johnson', 'alice@example.com', 'Biology', 'Researcher'),
-        ('Bob Smith', 'bob@example.com', 'Chemistry', 'Student'),
-        ('Charlie Davis', 'charlie@example.com', 'Physics', 'Professor')
-    ]
-    for user in users:
-        cursor.execute('''
-            INSERT INTO users (user_name, email, department, role)
-            VALUES (%s, %s, %s, %s) ON CONFLICT (email) DO NOTHING
-        ''', user)
-
-    # Insert sample tools
-    tools = [
-        ('Seurat', 'Single-Cell Analysis', 'Single-cell RNA-seq;Clustering', 'Free',
-         'An R package for single-cell RNA sequencing data.', 'https://satijalab.org/seurat/', 'R', 'Cross-platform'),
-        ('Scanpy', 'Single-Cell Analysis', 'Single-cell RNA-seq;Visualization', 'Free',
-         'A scalable toolkit for analyzing single-cell gene expression data.', 'https://scanpy.readthedocs.io/', 'Python', 'Cross-platform'),
-        ('Bowtie', 'Genomics', 'Sequence Alignment;Genome Mapping', 'Free',
-         'A fast and memory-efficient tool for aligning sequencing reads to long reference sequences.', 'https://bowtie-bio.sourceforge.net/index.shtml', 'C++', 'Cross-platform'),
-        ('RNAAnalyzer', 'RNA', 'RNA-Seq Analysis;Differential Expression', 'Free',
-         'A tool for analyzing RNA-Seq data and identifying differential gene expression.', 'https://rnaanalyzer.example.com/', 'R', 'Cross-platform')
-    ]
-    for tool in tools:
-        cursor.execute('''
-            INSERT INTO tools (name, category, features, cost, description, url, language, platform)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (name) DO NOTHING
-        ''', tool)
-
-    conn.commit()
-    cursor.close()
-
-
-def main():
-    # Database connection parameters
-    db_name = os.getenv('DB_NAME', 'labmate_db')
-    db_user = os.getenv('DB_USER', 'postgres')
-    db_password = os.getenv('DB_PASSWORD', 'password')
-    db_host = os.getenv('DB_HOST', 'localhost')
-    # Updated port for LabMateAI PostgreSQL server
-    db_port = os.getenv('DB_PORT', '1357')
-
-    # Connect to the PostgreSQL database
+def initialize_database():
     try:
-        conn = psycopg2.connect(
-            dbname=db_name,
-            user=db_user,
-            password=db_password,
-            host=db_host,
-            port=db_port
-        )
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Error: {error}")
-        return
+        # Establish a connection to the PostgreSQL database
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
 
-    # Create tables
-    create_tables(conn)
-    # Insert sample data
-    insert_sample_data(conn)
+        # Create users table if it doesn't exist
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id SERIAL PRIMARY KEY,
+                user_name VARCHAR(100) NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                department VARCHAR(100),
+                role VARCHAR(50)
+            );
+        """)
 
-    # Close the connection
-    conn.close()
+        # Create tools table if it doesn't exist (example)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tools (
+                tool_id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                category VARCHAR(100),
+                features TEXT,
+                cost VARCHAR(50),
+                description TEXT,
+                url VARCHAR(255),
+                language VARCHAR(50),
+                platform VARCHAR(50)
+            );
+        """)
+
+        # Commit the table creations
+        conn.commit()
+
+        # Identify the sequence associated with user_id
+        cursor.execute("""
+            SELECT pg_get_serial_sequence('users', 'user_id');
+        """)
+        sequence_name = cursor.fetchone()[0]
+        print(f"Sequence identified: {sequence_name}")
+
+        # Get the current maximum user_id
+        cursor.execute("""
+            SELECT COALESCE(MAX(user_id), 100000) FROM users;
+        """)
+        max_user_id = cursor.fetchone()[0]
+        print(f"Current maximum user_id: {max_user_id}")
+
+        # Set the sequence to the current maximum user_id
+        # Setting is_called to False ensures nextval() returns max_user_id + 1
+        cursor.execute(sql.SQL("SELECT setval(%s, %s, false);"),
+                       [sequence_name, max_user_id])
+        print(f"Sequence {sequence_name} set to {max_user_id}")
+
+        # Commit the sequence adjustment
+        conn.commit()
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+        print("Database initialized successfully.")
+
+    except (psycopg2.DatabaseError, psycopg2.OperationalError) as e:
+        print(f"Database error: {e}")
+        sys.exit(1)
+    except (psycopg2.Error, KeyError, TypeError) as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    initialize_database()
