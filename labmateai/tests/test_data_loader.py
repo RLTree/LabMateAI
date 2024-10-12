@@ -43,13 +43,12 @@ def test_load_tools_from_db_success(mock_connect):
     # Setup the mock connection and cursor
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
-    mock_conn.__enter__.return_value = mock_conn
-    mock_cursor.__enter__.return_value = mock_cursor
-
-    # Mock the behavior of connect and cursor
-    mock_conn.cursor.return_value = mock_cursor
-    mock_cursor.fetchall.return_value = SAMPLE_TOOLS_DB_ROWS
     mock_connect.return_value = mock_conn
+    mock_conn.__enter__.return_value = mock_conn
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    # Mock the fetchall to return sample data
+    mock_cursor.fetchall.return_value = SAMPLE_TOOLS_DB_ROWS
 
     # Call the function and validate results
     tools = load_tools_from_db()
@@ -86,13 +85,12 @@ def test_load_users_from_db_success(mock_connect):
     # Setup the mock connection and cursor
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
-    mock_conn.__enter__.return_value = mock_conn
-    mock_cursor.__enter__.return_value = mock_cursor
-
-    # Mock the behavior of connect and cursor
-    mock_conn.cursor.return_value = mock_cursor
-    mock_cursor.fetchall.return_value = SAMPLE_USERS_DB_ROWS
     mock_connect.return_value = mock_conn
+    mock_conn.__enter__.return_value = mock_conn
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    # Mock the fetchall to return sample data
+    mock_cursor.fetchall.return_value = SAMPLE_USERS_DB_ROWS
 
     # Call the function and validate results
     users = load_users_from_db()
@@ -123,13 +121,12 @@ def test_load_interactions_from_db_success(mock_connect):
     # Setup the mock connection and cursor
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
-    mock_conn.__enter__.return_value = mock_conn
-    mock_cursor.__enter__.return_value = mock_cursor
-
-    # Mock the behavior of connect and cursor
-    mock_conn.cursor.return_value = mock_cursor
-    mock_cursor.fetchall.return_value = SAMPLE_INTERACTIONS_DB_ROWS
     mock_connect.return_value = mock_conn
+    mock_conn.__enter__.return_value = mock_conn
+    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+
+    # Mock the fetchall to return sample data
+    mock_cursor.fetchall.return_value = SAMPLE_INTERACTIONS_DB_ROWS
 
     # Call the function and validate results
     interactions = load_interactions_from_db()

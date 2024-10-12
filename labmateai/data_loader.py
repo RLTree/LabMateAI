@@ -1,20 +1,21 @@
 # labmateai/data_loader.py
 
 """
-This module contains functions for loading tool data from the PostgreSQL database.
+This module contains functions for loading tool, user, and interaction data from the PostgreSQL database.
 It ensures that each Tool instance includes a unique tool_id and handles data validation.
 """
 
 import psycopg2
+from psycopg2 import sql
 from .tool import Tool
 
 # Database connection parameters
 DB_CONFIG = {
     'dbname': 'labmate_db',
-    'user': 'RLTree',   # Update with your DB username
-    'password': 'BabyBlue!',  # Update with your DB password
+    'user': 'postgres',   # Update with your DB username
+    'password': 'password',  # Update with your DB password
     'host': 'localhost',  # Update with your host if different
-    'port': '5432'  # Default PostgreSQL port
+    'port': '1357'  # Updated PostgreSQL port for LabMateAI server
 }
 
 
@@ -35,10 +36,10 @@ def load_tools_from_db():
         with psycopg2.connect(**DB_CONFIG) as conn:
             with conn.cursor() as cursor:
                 # Execute SQL query to get tool data
-                query = """
+                query = sql.SQL("""
                     SELECT tool_id, name, category, features, cost, description, url, language, platform
                     FROM tools;
-                """
+                """)
                 cursor.execute(query)
 
                 # Fetch all tool records
@@ -49,8 +50,8 @@ def load_tools_from_db():
                     tool_id, name, category, features, cost, description, url, language, platform = row
 
                     # Convert features string to list
-                    features_list = [feature.strip().lower()
-                                     for feature in features.split(';') if feature.strip()]
+                    features_list = [feature.strip().lower(
+                    ) for feature in features.split(';') if feature.strip()]
 
                     # Create Tool instance
                     tool = Tool(
@@ -90,10 +91,10 @@ def load_users_from_db():
         with psycopg2.connect(**DB_CONFIG) as conn:
             with conn.cursor() as cursor:
                 # Execute SQL query to get user data
-                query = """
+                query = sql.SQL("""
                     SELECT user_id, user_name, email, department, role
                     FROM users;
-                """
+                """)
                 cursor.execute(query)
 
                 # Fetch all user records
@@ -135,10 +136,10 @@ def load_interactions_from_db():
         with psycopg2.connect(**DB_CONFIG) as conn:
             with conn.cursor() as cursor:
                 # Execute SQL query to get interaction data
-                query = """
+                query = sql.SQL("""
                     SELECT interaction_id, user_id, tool_id, rating, usage_frequency, timestamp
                     FROM interactions;
-                """
+                """)
                 cursor.execute(query)
 
                 # Fetch all interaction records

@@ -1,35 +1,50 @@
 language: python
+
 python:
   - "3.8"
   - "3.9"
   - "3.10"
 
+# Enable caching for pip to speed up builds by reusing previously downloaded packages
+cache: pip
+
+# Upgrade pip and setuptools to their latest versions before installation
+before_install:
+  - pip install --upgrade pip setuptools
+
+# Install project dependencies and the project itself
 install:
   - pip install -r requirements.txt
   - pip install .
 
+# Install flake8 and run linting to ensure code style consistency
 before_script:
-  - flake8 .  # Run linting before the tests to ensure code style consistency
+  - pip install flake8
+  - flake8 .  # This will fail the build if there are linting errors
 
+# Run tests with coverage reporting
 script:
-  - pytest --cov=labmateai --cov-report=xml --cov-report=term-missing  # Added coverage reporting
+  - pytest --cov=labmateai --cov-report=xml --cov-report=term-missing
 
+# After successful tests, upload coverage reports to Codecov
 after_success:
-  - bash <(curl -s https://codecov.io/bash)  # Upload coverage reports to Codecov
+  - bash <(curl -s https://codecov.io/bash)
 
+# Deployment configuration to PyPI
 deploy:
   provider: pypi
-  username: __token__  # Replace with '__token__' if using a token, else provide your PyPI username
+  username: __token__  # Use '__token__' if deploying with an API token
   password:
     secure: "<pypi-AgEIcHlwaS5vcmcCJGFiZjdkNWY4LTFhZWUtNGRmZS04MWE2LWNlNGUyMWU4ZWJlMQACKlszLCJiYjI2YzRkMC1lZjA4LTRlZmMtOTZmMS0xMTkyNzFjZjM4ZmMiXQAABiATN_pxBDKC66Ol0lFe5jKB_FOdGeX4w93SY0qi9hY1cg>"
   on:
-    tags: true  # Only deploy on tagged commits (i.e., new versions)
-    branch: collab_filtering  # Specify the branch for release
-  distributions: "sdist bdist_wheel"  # Create source distribution and wheel
+    tags: true  # Deploy only when a commit is tagged
+    branch: collab_filtering  # Deploy only from the 'collab_filtering' branch
+  distributions: "sdist bdist_wheel"  # Build both source and wheel distributions
 
+# Email notifications for build results
 notifications:
   email:
     recipients:
       - tnoblin@health.ucsd.edu
-    on_success: change
-    on_failure: always
+    on_success: change  # Notify only if the build status changes to success
+    on_failure: always  # Always notify on failures

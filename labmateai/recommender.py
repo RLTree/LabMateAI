@@ -90,13 +90,21 @@ class Recommender:
         self.build_recommendation_system()
 
         # Preprocess tools for content-based filtering
-        self.tools_df = pd.DataFrame([tool.__dict__ for tool in tools])
-        self.tools_df['combined_features'] = self.tools_df.apply(
-            lambda row: self._combine_features(row), axis=1
-        )
-        self.vectorizer = CountVectorizer().fit_transform(
-            self.tools_df['combined_features'])
-        self.similarity_matrix = cosine_similarity(self.vectorizer)
+        if tools:
+            self.tools_df = pd.DataFrame([tool.__dict__ for tool in tools])
+            self.tools_df['combined_features'] = self.tools_df.apply(
+                lambda row: self._combine_features(row), axis=1
+            )
+            if not self.tools_df['combined_features'].empty:
+                self.vectorizer = CountVectorizer().fit_transform(
+                    self.tools_df['combined_features']
+                )
+                self.similarity_matrix = cosine_similarity(self.vectorizer)
+            else:
+                self.similarity_matrix = None
+        else:
+            self.tools_df = pd.DataFrame()
+            self.similarity_matrix = None
 
     def _combine_features(self, row):
         """
@@ -225,8 +233,8 @@ class Recommender:
         if tool_name.lower() not in self.tools_df['name'].str.lower().values:
             raise ValueError(f"Tool '{tool_name}' not found in the dataset.")
 
-        tool_index = self.tools_df[self.tools_df['name'].str.lower(
-        ) == tool_name.lower()].index[0]
+        tool_index = self.tools_df[self.tools_df['name'].str.lower()
+                                   == tool_name.lower()].index[0]
 
         # Get the similarity scores for the tool
         similarity_scores = list(enumerate(self.similarity_matrix[tool_index]))
@@ -298,21 +306,23 @@ def main():
         print(e)
 
     # Initialize Collaborative Filtering Recommender
-    cf_recommender = CollaborativeRecommender(
-        user_item_matrix, tools_df, n_neighbors=5)
+    if not interactions.empty:
+        cf_recommender = CollaborativeRecommender(
+            user_item_matrix, tools_df, n_neighbors=5)
 
-    # Collaborative Filtering Recommendation Example
-    user_id = 1  # Example user ID
-    try:
-        cf_recommendations = cf_recommender.get_recommendations(
-            user_id=user_id,
-            n_recommendations=5
-        )
-        print(f"\nCollaborative Filtering Recommendations for User {user_id}:")
-        for tool in cf_recommendations:
-            print(f"- {tool['tool_name']} (ID: {tool['tool_id']})")
-    except ValueError as e:
-        print(e)
+        # Collaborative Filtering Recommendation Example
+        user_id = 1  # Example user ID
+        try:
+            cf_recommendations = cf_recommender.get_recommendations(
+                user_id=user_id,
+                n_recommendations=5
+            )
+            print(
+                f"\nCollaborative Filtering Recommendations for User {user_id}:")
+            for tool in cf_recommendations:
+                print(f"- {tool['tool_name']} (ID: {tool['tool_id']})")
+        except ValueError as e:
+            print(e)
 
 
 if __name__ == "__main__":
