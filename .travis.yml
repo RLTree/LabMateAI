@@ -75,7 +75,7 @@ deploy:
     secure: "<pypi-AgEIcHlwaS5vcmcCJGFiZjdkNWY4LTFhZWUtNGRmZS04MWE2LWNlNGUyMWU4ZWJlMQACKlszLCJiYjI2YzRkMC1lZjA4LTRlZmMtOTZmMS0xMTkyNzFjZjM4ZmMiXQAABiATN_pxBDKC66Ol0lFe5jKB_FOdGeX4w93SY0qi9hY1cg>"
   on:
     tags: true  # Deploy only when a commit is tagged
-    branch: collab_filtering  # Deploy only from the 'collab_filtering' branch
+    branch: master  # Deploy only from the 'collab_filtering' branch
   distributions: "sdist bdist_wheel"  # Build both source and wheel distributions
 
 # Email notifications for build results
