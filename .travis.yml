@@ -1,10 +1,3 @@
-language: python
-
-python:
-  - "3.8"
-  - "3.9"
-  - "3.10"
-
 # Enable caching for pip to speed up builds by reusing previously downloaded packages
 cache: pip
 
@@ -22,15 +15,9 @@ env:
     # DATABASE_URL for the test database
     - TEST_DATABASE_URL=postgresql://postgres@localhost:5432/labmate_test_db
 
-# Securely handle the DATABASE_URL using Travis CI's encrypted environment variables
-# It's recommended to set DATABASE_URL in Travis CI's repository settings for security
-# Alternatively, you can encrypt it using Travis CLI and add it here
-# For example:
-# - secure: "<encrypted_database_url>"
-
 # Upgrade pip and setuptools before installation
 before_install:
-  - pip install --upgrade pip setuptools
+  - pip install --upgrade pip setuptools wheel  # Add wheel for building distributions
 
 # Install project dependencies and the project itself
 install:
@@ -56,7 +43,6 @@ before_script:
   
   # Run Alembic migrations to set up the test database schema
   # Ensure that alembic.ini is correctly configured to use TEST_DATABASE_URL for testing
-  # Modify alembic.ini or env.py to switch DATABASE_URL based on environment variables if necessary
   - alembic upgrade head
 
 # Run tests with coverage reporting
@@ -66,7 +52,7 @@ script:
 # After successful tests, upload coverage reports to Codecov
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
+  
 # Deployment configuration to PyPI
 deploy:
   provider: pypi
@@ -75,7 +61,7 @@ deploy:
     secure: "<pypi-AgEIcHlwaS5vcmcCJGFiZjdkNWY4LTFhZWUtNGRmZS04MWE2LWNlNGUyMWU4ZWJlMQACKlszLCJiYjI2YzRkMC1lZjA4LTRlZmMtOTZmMS0xMTkyNzFjZjM4ZmMiXQAABiATN_pxBDKC66Ol0lFe5jKB_FOdGeX4w93SY0qi9hY1cg>"
   on:
     tags: true  # Deploy only when a commit is tagged
-    branch: master  # Deploy only from the 'collab_filtering' branch
+    branch: master  # Deploy only when a commit is on the master branch
   distributions: "sdist bdist_wheel"  # Build both source and wheel distributions
 
 # Email notifications for build results
