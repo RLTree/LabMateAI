@@ -8,7 +8,27 @@ python:
 # Enable caching for pip to speed up builds by reusing previously downloaded packages
 cache: pip
 
-# Upgrade pip and setuptools to their latest versions before installation
+# Add PostgreSQL service for testing database interactions
+services:
+  - postgresql
+
+# Environment variables for PostgreSQL
+env:
+  global:
+    # Define a separate test database
+    - POSTGRES_DB=labmate_test_db
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=
+    # DATABASE_URL for the test database
+    - TEST_DATABASE_URL=postgresql://postgres@localhost:5432/labmate_test_db
+
+# Securely handle the DATABASE_URL using Travis CI's encrypted environment variables
+# It's recommended to set DATABASE_URL in Travis CI's repository settings for security
+# Alternatively, you can encrypt it using Travis CLI and add it here
+# For example:
+# - secure: "<encrypted_database_url>"
+
+# Upgrade pip and setuptools before installation
 before_install:
   - pip install --upgrade pip setuptools
 
@@ -17,10 +37,27 @@ install:
   - pip install -r requirements.txt
   - pip install .
 
-# Install flake8 and run linting to ensure code style consistency
+# Set up the PostgreSQL database and run migrations
 before_script:
+  # Verify PostgreSQL installation
+  - psql --version
+  
+  # Create the test database
+  - psql -c 'CREATE DATABASE labmate_test_db;' -U postgres
+  
+  # Install flake8 for linting
   - pip install flake8
+  
+  # Run flake8 to ensure code style consistency
   - flake8 .  # This will fail the build if there are linting errors
+  
+  # Install Alembic for database migrations
+  - pip install alembic
+  
+  # Run Alembic migrations to set up the test database schema
+  # Ensure that alembic.ini is correctly configured to use TEST_DATABASE_URL for testing
+  # Modify alembic.ini or env.py to switch DATABASE_URL based on environment variables if necessary
+  - alembic upgrade head
 
 # Run tests with coverage reporting
 script:

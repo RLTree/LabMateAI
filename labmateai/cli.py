@@ -1,4 +1,4 @@
-# cli.py
+# labmateai/cli.py
 
 """
 CLI module for LabMateAI.
@@ -11,16 +11,19 @@ import os
 import sys
 import logging
 from datetime import datetime
-import psycopg2
-from psycopg2 import sql
 from dotenv import load_dotenv
 import pandas as pd
-from labmateai.database import get_db_connection, release_db_connection
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+
+# Assuming get_engine returns a SQLAlchemy engine
+from labmateai.database import get_engine
+from labmateai.models import User, Tool as ToolModel, Interaction
 from labmateai.recommender import Recommender, build_user_item_matrix
 from labmateai.collaborative_recommender import CollaborativeRecommender
 from labmateai.hybrid_recommender import HybridRecommender
-from labmateai.tool import Tool
-
+# Assuming Tool is a custom class, alias it to avoid conflict with ToolModel
+from labmateai.tool import Tool as CustomTool
 
 # Import Alembic API for running migrations programmatically
 from alembic import command
@@ -58,11 +61,14 @@ class CLI:
         # Initialize the database migrations
         self._run_migrations()
 
+        # Initialize the database engine and session
+        self.engine = get_engine(self.db_config)
+        self.Session = sessionmaker(bind=self.engine)
+
     def _run_migrations(self):
         """
         Runs Alembic migrations to ensure the database schema is up-to-date.
         """
-
         try:
             # Locate the Alembic configuration file
             current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -96,25 +102,22 @@ class CLI:
             str: The constructed DATABASE_URL.
         """
         return f"postgresql://{self.db_config['user']}:{self.db_config['password']}@" \
-            f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
+               f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
 
     def _get_or_create_user(self):
         """
         Handles user login or sign-up.
         """
+        session = self.Session()
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-
             print("\n--- LabMateAI User Login/Signup ---")
             email = input("Enter your email: ").strip().lower()
 
-            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-            user = cursor.fetchone()
+            user = session.query(User).filter_by(email=email).first()
 
             if user:
-                print(f"Welcome back, {user[1]}.")
-                user_id = user[0]
+                print(f"Welcome back, {user.user_name}.")
+                user_id = user.user_id
             else:
                 print("No account found. Let's create a new one.")
                 user_name = input("Enter your full name: ").strip()
@@ -122,22 +125,25 @@ class CLI:
                 role = input(
                     "Enter your role (e.g., Researcher, Student): ").strip()
 
-                cursor.execute("""
-                INSERT INTO users (user_name, email, department, role)
-                VALUES (%s, %s, %s, %s)
-                RETURNING user_id
-                """, (user_name, email, department, role))
-                user_id = cursor.fetchone()[0]
-                conn.commit()
-                print(f"User successfully signed up! Welcome, {user_name}.")
+                new_user = User(
+                    user_name=user_name,
+                    email=email,
+                    department=department,
+                    role=role
+                )
+                session.add(new_user)
+                session.commit()
+                print(
+                    f"User successfully signed up! Welcome, {new_user.user_name}.")
+                user_id = new_user.user_id
 
-            cursor.close()
-            release_db_connection(conn)
             return user_id
-        except psycopg2.Error as e:
+        except Exception as e:
             logging.error("Database error during user login/signup: %s", e)
             print("An error occurred during login/signup. Please try again.")
             sys.exit(1)
+        finally:
+            session.close()
 
     def _log_interaction(self, user_id, tool_id, rating=None, usage_frequency=None):
         """
@@ -149,22 +155,23 @@ class CLI:
             rating (int, optional): User rating for the tool (0-5).
             usage_frequency (str, optional): Frequency of tool usage.
         """
+        session = self.Session()
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-
-            timestamp = datetime.now()
-
-            cursor.execute("""
-            INSERT INTO interactions (user_id, tool_id, rating, usage_frequency, timestamp)
-            VALUES (%s, %s, %s, %s, %s)
-            """, (user_id, tool_id, rating, usage_frequency, timestamp))
-            conn.commit()
-            cursor.close()
-            release_db_connection(conn)
-        except psycopg2.Error as e:
+            interaction = Interaction(
+                user_id=user_id,
+                tool_id=tool_id,
+                rating=rating,
+                usage_frequency=usage_frequency,
+                timestamp=datetime.now()
+            )
+            session.add(interaction)
+            session.commit()
+            print("Thank you for your interaction!")
+        except Exception as e:
             logging.error("Failed to log interaction: %s", e)
             print("An error occurred while logging your interaction. Please try again.")
+        finally:
+            session.close()
 
     def _load_data_and_initialize_recommenders(self):
         """
@@ -172,43 +179,63 @@ class CLI:
         """
         if not self.data_loaded:
             try:
-                # Connect to the database
-                conn = get_db_connection()
-                cursor = conn.cursor()
+                session = self.Session()
 
                 # Load tools from the tools table
-                cursor.execute("SELECT * FROM tools")
-                tools_data = cursor.fetchall()
+                tools_data = session.query(ToolModel).all()
                 if not tools_data:
                     raise RuntimeError("No tools found in the database.")
 
-                self.tools = [
-                    Tool(
-                        tool_id=row[0],
-                        name=row[1],
-                        category=row[2],
-                        features=[feature.strip().lower()
-                                  for feature in row[3].split(';') if feature.strip()],
-                        cost=row[4],
-                        description=row[5],
-                        url=row[6],
-                        language=row[7],
-                        platform=row[8]
+                self.tools = []
+                for tool in tools_data:
+                    # Debugging: Check the type and content of tool.features
+                    logging.debug(
+                        f"Tool ID: {tool.tool_id}, Features: {tool.features}, Type: {type(tool.features)}")
+
+                    if isinstance(tool.features, list):
+                        # features is already a list
+                        features_processed = [feature.strip().lower(
+                        ) for feature in tool.features if feature.strip()]
+                    elif isinstance(tool.features, str):
+                        # Assuming features are stored as "{feature1, feature2, feature3}"
+                        # Remove curly braces and split by comma
+                        features_cleaned = tool.features.strip('{}')
+                        features_split = [
+                            feature.strip() for feature in features_cleaned.split(',') if feature.strip()]
+                        features_processed = [feature.lower()
+                                              for feature in features_split]
+                    else:
+                        logging.warning(
+                            f"Unexpected type for features in tool ID {tool.tool_id}. Skipping this tool.")
+                        continue  # Skip this tool if features are not in expected format
+
+                    custom_tool = CustomTool(
+                        tool_id=tool.tool_id,
+                        name=tool.name,
+                        category=tool.category,
+                        features=features_processed,
+                        cost=tool.cost,
+                        description=tool.description,
+                        url=tool.url,
+                        language=tool.language,
+                        platform=tool.platform
                     )
-                    for row in tools_data
-                ]
+                    self.tools.append(custom_tool)
 
                 # Initialize the Recommender for content-based recommendations
                 self.recommender = Recommender(tools=self.tools)
 
                 # Load user-item interactions from the database
-                cursor.execute(
-                    "SELECT user_id, tool_id, rating FROM interactions WHERE rating IS NOT NULL")
-                interactions_data = cursor.fetchall()
+                interactions_data = session.query(Interaction).filter(
+                    Interaction.rating.isnot(None)).all()
 
                 if interactions_data:
-                    interactions = pd.DataFrame(interactions_data, columns=[
-                                                'user_id', 'tool_id', 'rating'])
+                    interactions = pd.DataFrame([{
+                        'user_id': interaction.user_id,
+                        'tool_id': interaction.tool_id,
+                        'rating': interaction.rating
+                    } for interaction in interactions_data])
+
                     logging.debug("Interactions DataFrame: \n%s", interactions)
 
                     # Build user-item matrix
@@ -219,8 +246,17 @@ class CLI:
                     if not user_item_matrix.empty:
                         self.cf_recommender = CollaborativeRecommender(
                             user_item_matrix=user_item_matrix,
-                            tools_df=pd.DataFrame(tools_data, columns=[
-                                                  'tool_id', 'name', 'category', 'features', 'cost', 'description', 'url', 'language', 'platform']),
+                            tools_df=pd.DataFrame([{
+                                'tool_id': tool.tool_id,
+                                'name': tool.name,
+                                'category': tool.category,
+                                'features': tool.features,
+                                'cost': tool.cost,
+                                'description': tool.description,
+                                'url': tool.url,
+                                'language': tool.language,
+                                'platform': tool.platform
+                            } for tool in tools_data]),
                             n_neighbors=5
                         )
 
@@ -247,14 +283,68 @@ class CLI:
                 tool_names = [tool.name for tool in self.tools]
                 logging.info("Loaded tools: %s", tool_names)
 
-                cursor.close()
-                release_db_connection(conn)
+                session.close()
 
             except Exception as e:
                 logging.error("Failed to initialize CLI: %s", e)
                 print(
                     "Failed to initialize the application. Please ensure the database is set up correctly.")
                 sys.exit(1)
+
+    def _prompt_rating(self, recommendations, user_id):
+        """
+        Prompts the user to rate any of the recommended tools.
+
+        Args:
+            recommendations (list of CustomTool): List of recommended tools.
+            user_id (int): The ID of the current user.
+        """
+        while True:
+            rate_choice = input(
+                "Would you like to rate any of these tools? (yes/no): ").strip().lower()
+            if rate_choice in ['yes', 'y']:
+                try:
+                    tool_id_input = input(
+                        "Enter the Tool ID you want to rate: ").strip()
+                    rating_input = input(
+                        "Enter your rating for the tool (0-5): ").strip()
+                    usage_frequency = input(
+                        "Enter your usage frequency for the tool (e.g., Often, Sometimes, Rarely): ").strip()
+
+                    # Validate tool_id
+                    if not tool_id_input.isdigit():
+                        print("Invalid Tool ID. Please enter a numeric value.")
+                        continue
+                    tool_id = int(tool_id_input)
+
+                    # Check if tool_id is in recommendations
+                    if not any(tool.tool_id == tool_id for tool in recommendations):
+                        print(
+                            "The Tool ID entered is not in the current recommendations.")
+                        continue
+
+                    # Validate rating
+                    if not rating_input.isdigit():
+                        print(
+                            "Invalid rating. Please enter a numeric value between 0 and 5.")
+                        continue
+                    rating = int(rating_input)
+
+                    if 0 <= rating <= 5:
+                        # Log the interaction
+                        self._log_interaction(
+                            user_id=user_id, tool_id=tool_id, rating=rating, usage_frequency=usage_frequency)
+                        break
+                    else:
+                        print(
+                            "Invalid rating. Please enter a number between 0 and 5.")
+                except ValueError:
+                    print(
+                        "Invalid input. Please enter numeric values for Tool ID and rating.")
+            elif rate_choice in ['no', 'n']:
+                break
+            else:
+                print("Please respond with 'yes' or 'no'.")
 
     def handle_recommend_similar_tools(self, user_id):
         """
@@ -268,6 +358,8 @@ class CLI:
             for tool in recommendations:
                 print(
                     f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
+            # Prompt for rating after recommendations
+            self._prompt_rating(recommendations, user_id)
         else:
             print("No similar tools found.")
 
@@ -285,6 +377,8 @@ class CLI:
             for tool in recommendations:
                 print(
                     f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
+            # Prompt for rating after recommendations
+            self._prompt_rating(recommendations, user_id)
         else:
             print("No tools found in this category.")
 
@@ -303,39 +397,10 @@ class CLI:
             for tool in recommendations:
                 print(
                     f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
+            # Prompt for rating after recommendations
+            self._prompt_rating(recommendations, user_id)
         else:
             print("No tools found for the given keyword.")
-
-    def handle_rate_tool(self, user_id):
-        """
-        Handles rating a tool recommended to the user.
-        """
-        try:
-            tool_id_input = input(
-                "Enter the tool ID you want to rate: ").strip()
-            rating_input = input(
-                "Enter your rating for the tool (0-5): ").strip()
-
-            # Validate tool_id
-            if not tool_id_input.isdigit():
-                print("Invalid tool ID. Please enter a numeric value.")
-                return
-            tool_id = int(tool_id_input)
-
-            # Validate rating
-            if not rating_input.isdigit():
-                print("Invalid rating. Please enter a numeric value between 0 and 5.")
-                return
-            rating = int(rating_input)
-
-            if 0 <= rating <= 5:
-                self._log_interaction(
-                    user_id=user_id, tool_id=tool_id, rating=rating)
-                print("Thank you for your rating!")
-            else:
-                print("Invalid rating. Please enter a number between 0 and 5.")
-        except ValueError:
-            print("Invalid input. Please enter numeric values for tool ID and rating.")
 
     def start(self):
         """
@@ -350,10 +415,9 @@ class CLI:
             print("1. Recommend similar tools")
             print("2. Recommend tools within a category")
             print("3. Search tools by keyword")
-            print("4. Rate a recommended tool")
-            print("5. Exit")
+            print("4. Exit")
 
-            choice = input("Enter your choice (1-5): ").strip()
+            choice = input("Enter your choice (1-4): ").strip()
 
             if choice == '1':
                 self.handle_recommend_similar_tools(user_id)
@@ -362,12 +426,10 @@ class CLI:
             elif choice == '3':
                 self.handle_search_tools(user_id)
             elif choice == '4':
-                self.handle_rate_tool(user_id)
-            elif choice == '5':
                 print("Exiting LabMateAI. Goodbye!")
                 break
             else:
-                print("Invalid choice. Please enter a number between 1 and 5.")
+                print("Invalid choice. Please enter a number between 1 and 4.")
 
 
 def main():

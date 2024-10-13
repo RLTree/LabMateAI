@@ -20,6 +20,15 @@ setup(
         'networkx>=2.5',
         'numpy>=1.18.0',
         'prompt_toolkit>=3.0.0',
+        'pandas>=1.5.3',
+        'scikit-learn>=1.1.3',
+        'matplotlib>=3.6.2',
+        'flask>=2.2.2',
+        'requests>=2.28.1',
+        'scipy>=1.9.3',
+        'jinja2>=3.1.2',
+        'gunicorn>=20.1.0',
+        'psycopg2>=2.9.0'
     ],
     entry_points={
         'console_scripts': [
@@ -27,14 +36,15 @@ setup(
         ],
     },
     classifiers=[
-        # Specify the Python version you're using
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'License :: OSI Approved :: MIT License',
     ],
-    license='MIT',  # Ensure this matches your LICENSE file
+    license='MIT',
     python_requires='>=3.8',
     keywords=[
         'AI',
@@ -43,21 +53,20 @@ setup(
         'Scientific Software',
         'Bioinformatics',
     ],
-    project_urls={  # Optional: Add additional URLs
+    project_urls={
         'Bug Reports': 'https://github.com/RLTree/LabMateAI/issues',
         'Source': 'https://github.com/RLTree/LabMateAI',
     },
-    extras_require={  # Optional: Define additional groups of dependencies
+    extras_require={
         'dev': [
             'pytest>=7.0.0',
             'pytest-cov>=3.0.0',
-            'mock>=3.11.1',
-            # Add other development dependencies here
+            'mock>=4.0.3',
+            'flake8>=6.1.0'
         ],
         'docs': [
             'sphinx>=4.0.0',
             'furo>=2021.8.14',
-            # Add other documentation dependencies here
         ],
     },
 )

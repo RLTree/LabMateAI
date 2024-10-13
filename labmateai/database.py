@@ -5,6 +5,8 @@ import logging
 import psycopg2
 from psycopg2 import sql, pool
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # Load environment variables from .env file
 load_dotenv()
@@ -67,4 +69,24 @@ def release_db_connection(conn):
         logging.debug("Released connection back to pool.")
     except psycopg2.Error as e:
         logging.error("Error releasing connection to pool: %s", e)
+        raise e
+
+
+def get_engine(db_config):
+    """
+    Creates a SQLAlchemy engine using the provided database configuration.
+
+    Args:
+        db_config (dict): Database configuration parameters.
+
+    Returns:
+        Engine: A SQLAlchemy Engine instance.
+    """
+    try:
+        database_url = f"postgresql://{db_config['user']}:{db_config['password']}@" \
+                       f"{db_config['host']}:{db_config['port']}/{db_config['dbname']}"
+        engine = create_engine(database_url)
+        return engine
+    except Exception as e:
+        logging.error("Failed to create database engine: %s", e)
         raise e
