@@ -129,13 +129,17 @@ cython_debug/
 htmlcov/
 
 # Ignore data files
-labmateai/data/*.json
-labmateai/data/*.csv
-labmateai/data/generate_sample_data.py
-labmateai/data/database/
+labmateai/data
+labmateai/data/database/*
 
 # Exclude sensitive files
 .vscode/settings.json
 
 # Environment variables
 .env
+alembic.ini
+alembic/versions/*
+alembic/env.py
+alembic/script.py.mako
+alembic/versions/README.md
+alembic/README

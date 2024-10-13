@@ -1,10 +1,10 @@
 # database.py
 
 import os
-import psycopg2
-from psycopg2 import sql
-from dotenv import load_dotenv
 import logging
+import psycopg2
+from psycopg2 import sql, pool
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,29 +12,59 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-
 # Database connection parameters
 DB_CONFIG = {
-    'dbname': os.getenv('DB_NAME', 'labmate_db'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', 'password'),
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': os.getenv('DB_PORT', '1357')
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT')
 }
+
+# Initialize the connection pool
+connection_pool = pool.SimpleConnectionPool(
+    1, 20,  # min and max number of connections
+    dbname=DB_CONFIG['dbname'],
+    user=DB_CONFIG['user'],
+    password=DB_CONFIG['password'],
+    host=DB_CONFIG['host'],
+    port=DB_CONFIG['port'],
+    sslmode='require'
+)
 
 
 def get_db_connection():
     """
-    Establishes and returns a connection to the PostgreSQL database.
+    Gets a connection from the connection pool.
 
     Returns:
-        psycopg2.connection: Database connection object.
+        psycopg2.extensions.connection: A database connection.
+
+    Raises:
+        psycopg2.Error: If an error occurs while getting a connection.
     """
+
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
-        logging.debug("Database connection established.")
-        return conn
-    except psycopg2.OperationalError as e:
-        logging.error("Failed to connect to the database: %s", e)
-        print("Failed to connect to the database. Please check your .env file and ensure that PostgreSQL is running.")
+        conn = connection_pool.getconn()
+        if conn:
+            logging.debug("Acquired connection from pool.")
+            return conn
+    except psycopg2.Error as e:
+        logging.error("Error getting connection from pool: %s", e)
+        raise e
+
+
+def release_db_connection(conn):
+    """
+    Releases a connection back to the pool.
+
+    Args:
+        conn (psycopg2.extensions.connection): The connection to release.
+    """
+
+    try:
+        connection_pool.putconn(conn)
+        logging.debug("Released connection back to pool.")
+    except psycopg2.Error as e:
+        logging.error("Error releasing connection to pool: %s", e)
         raise e

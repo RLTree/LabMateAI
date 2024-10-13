@@ -9,17 +9,22 @@ and provides tool recommendations based on user input.
 
 import os
 import sys
+import logging
+from datetime import datetime
 import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
-from labmateai.database import get_db_connection
 import pandas as pd
-from datetime import datetime
+from labmateai.database import get_db_connection, release_db_connection
 from labmateai.recommender import Recommender, build_user_item_matrix
 from labmateai.collaborative_recommender import CollaborativeRecommender
 from labmateai.hybrid_recommender import HybridRecommender
 from labmateai.tool import Tool
-import logging
+
+
+# Import Alembic API for running migrations programmatically
+from alembic import command
+from alembic.config import Config
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -50,78 +55,55 @@ class CLI:
         self.hybrid_recommender = None
         self.data_loaded = False
 
-        # Initialize the database (create tables and set sequences if needed)
-        self._initialize_database()
+        # Initialize the database migrations
+        self._run_migrations()
 
-    def _initialize_database(self):
+    def _run_migrations(self):
         """
-        Initializes the database by creating necessary tables and adjusting sequences.
+        Runs Alembic migrations to ensure the database schema is up-to-date.
         """
+
         try:
-            conn = psycopg2.connect(**self.db_config)
-            cursor = conn.cursor()
+            # Locate the Alembic configuration file
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+            alembic_cfg_path = os.path.join(parent_dir, 'alembic.ini')
+            if not os.path.exists(alembic_cfg_path):
+                logging.error(
+                    "Alembic configuration file 'alembic.ini' not found.")
+                print("Migration failed: 'alembic.ini' not found.")
+                sys.exit(1)
 
-            # Create users table if it doesn't exist
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    user_id SERIAL PRIMARY KEY,
-                    user_name VARCHAR(100) NOT NULL,
-                    email VARCHAR(100) UNIQUE NOT NULL,
-                    department VARCHAR(100),
-                    role VARCHAR(50)
-                );
-            """)
+            alembic_cfg = Config(alembic_cfg_path)
+            # Set the sqlalchemy.url in alembic configuration to the DATABASE_URL
+            alembic_cfg.set_main_option(
+                'sqlalchemy.url', self._construct_database_url())
 
-            # Create tools table if it doesn't exist
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS tools (
-                    tool_id SERIAL PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    category VARCHAR(100),
-                    features TEXT,
-                    cost VARCHAR(50),
-                    description TEXT,
-                    url VARCHAR(255),
-                    language VARCHAR(50),
-                    platform VARCHAR(50)
-                );
-            """)
-
-            # Commit table creations
-            conn.commit()
-
-            # Adjust user_id sequence
-            cursor.execute("""
-                SELECT pg_get_serial_sequence('users', 'user_id');
-            """)
-            sequence_name = cursor.fetchone()[0]
-
-            cursor.execute("""
-                SELECT COALESCE(MAX(user_id), 100000) FROM users;
-            """)
-            max_user_id = cursor.fetchone()[0]
-
-            # Set the sequence to max_user_id (nextval will be max_user_id + 1)
-            cursor.execute(sql.SQL("SELECT setval(%s, %s, false);"), [
-                           sequence_name, max_user_id])
-
-            # Commit sequence adjustment
-            conn.commit()
-
-            cursor.close()
-            conn.close()
-
-            logging.info("Database initialized successfully.")
-        except psycopg2.Error as e:
-            logging.error(f"Database initialization failed: {e}")
+            # Run migrations
+            logging.info("Running Alembic migrations...")
+            command.upgrade(alembic_cfg, "head")
+            logging.info("Alembic migrations applied successfully.")
+        except Exception as e:
+            logging.error("Failed to apply Alembic migrations: %s", e)
+            print("Migration failed. Please check the logs for more details.")
             sys.exit(1)
+
+    def _construct_database_url(self):
+        """
+        Constructs the DATABASE_URL from individual components.
+
+        Returns:
+            str: The constructed DATABASE_URL.
+        """
+        return f"postgresql://{self.db_config['user']}:{self.db_config['password']}@" \
+            f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
 
     def _get_or_create_user(self):
         """
         Handles user login or sign-up.
         """
         try:
-            conn = psycopg2.connect(**self.db_config)
+            conn = get_db_connection()
             cursor = conn.cursor()
 
             print("\n--- LabMateAI User Login/Signup ---")
@@ -150,10 +132,11 @@ class CLI:
                 print(f"User successfully signed up! Welcome, {user_name}.")
 
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
             return user_id
         except psycopg2.Error as e:
-            logging.error(f"Database error during user login/signup: {e}")
+            logging.error("Database error during user login/signup: %s", e)
+            print("An error occurred during login/signup. Please try again.")
             sys.exit(1)
 
     def _log_interaction(self, user_id, tool_id, rating=None, usage_frequency=None):
@@ -167,10 +150,10 @@ class CLI:
             usage_frequency (str, optional): Frequency of tool usage.
         """
         try:
-            conn = psycopg2.connect(**self.db_config)
+            conn = get_db_connection()
             cursor = conn.cursor()
 
-            timestamp = datetime.now().isoformat()
+            timestamp = datetime.now()
 
             cursor.execute("""
             INSERT INTO interactions (user_id, tool_id, rating, usage_frequency, timestamp)
@@ -178,9 +161,9 @@ class CLI:
             """, (user_id, tool_id, rating, usage_frequency, timestamp))
             conn.commit()
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
         except psycopg2.Error as e:
-            logging.error(f"Failed to log interaction: {e}")
+            logging.error("Failed to log interaction: %s", e)
             print("An error occurred while logging your interaction. Please try again.")
 
     def _load_data_and_initialize_recommenders(self):
@@ -190,7 +173,7 @@ class CLI:
         if not self.data_loaded:
             try:
                 # Connect to the database
-                conn = psycopg2.connect(**self.db_config)
+                conn = get_db_connection()
                 cursor = conn.cursor()
 
                 # Load tools from the tools table
@@ -226,11 +209,11 @@ class CLI:
                 if interactions_data:
                     interactions = pd.DataFrame(interactions_data, columns=[
                                                 'user_id', 'tool_id', 'rating'])
-                    logging.debug(f"Interactions DataFrame: \n{interactions}")
+                    logging.debug("Interactions DataFrame: \n%s", interactions)
 
                     # Build user-item matrix
                     user_item_matrix = build_user_item_matrix(interactions)
-                    logging.debug(f"User-item matrix: \n{user_item_matrix}")
+                    logging.debug("User-item matrix: \n%s", user_item_matrix)
 
                     # Initialize Collaborative Filtering Recommender
                     if not user_item_matrix.empty:
@@ -262,13 +245,16 @@ class CLI:
 
                 # Print loaded tools
                 tool_names = [tool.name for tool in self.tools]
-                logging.info(f"Loaded tools: {tool_names}")
+                logging.info("Loaded tools: %s", tool_names)
 
                 cursor.close()
-                conn.close()
+                release_db_connection(conn)
 
             except Exception as e:
-                raise RuntimeError(f"Failed to initialize CLI: {e}")
+                logging.error("Failed to initialize CLI: %s", e)
+                print(
+                    "Failed to initialize the application. Please ensure the database is set up correctly.")
+                sys.exit(1)
 
     def handle_recommend_similar_tools(self, user_id):
         """
@@ -325,10 +311,22 @@ class CLI:
         Handles rating a tool recommended to the user.
         """
         try:
-            tool_id = int(
-                input("Enter the tool ID you want to rate: ").strip())
-            rating = int(
-                input("Enter your rating for the tool (0-5): ").strip())
+            tool_id_input = input(
+                "Enter the tool ID you want to rate: ").strip()
+            rating_input = input(
+                "Enter your rating for the tool (0-5): ").strip()
+
+            # Validate tool_id
+            if not tool_id_input.isdigit():
+                print("Invalid tool ID. Please enter a numeric value.")
+                return
+            tool_id = int(tool_id_input)
+
+            # Validate rating
+            if not rating_input.isdigit():
+                print("Invalid rating. Please enter a numeric value between 0 and 5.")
+                return
+            rating = int(rating_input)
 
             if 0 <= rating <= 5:
                 self._log_interaction(
