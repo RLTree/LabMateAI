@@ -1,3 +1,4 @@
+
 # LabMateAI Usage Guide
 
 Welcome to the **LabMateAI Usage Guide**. This guide provides detailed instructions on how to use LabMateAI to discover and recommend scientific tools relevant to your research. Whether you're new to LabMateAI or looking to maximize its capabilities, this guide will help you navigate the application effectively.
@@ -24,7 +25,7 @@ Welcome to the **LabMateAI Usage Guide**. This guide provides detailed instructi
 
 ## Introduction
 
-**LabMateAI** is an AI-powered recommendation system designed to assist researchers in discovering laboratory tools and software tailored to their scientific needs. By leveraging advanced algorithms and data structures, LabMateAI provides personalized recommendations based on tool similarity, categories, and keyword searches.
+**LabMateAI** is an AI-powered recommendation system designed to assist researchers in discovering laboratory tools and software tailored to their scientific needs. By leveraging advanced algorithms, data structures, and a hybrid filtering recommendation engine, LabMateAI provides personalized recommendations based on tool similarity, categories, and keyword searches.
 
 ---
 

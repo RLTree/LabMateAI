@@ -12,7 +12,7 @@ The Interaction class represents an interaction between a user and a tool, inclu
 
 These models are used to interact with the database and perform CRUD operations on user, tool, and interaction data.
 """
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 

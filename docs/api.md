@@ -1,3 +1,4 @@
+
 # LabMateAI API Documentation
 
 This document provides an overview of the core classes, methods, and functions used in the **LabMateAI** scientific tool recommendation system. Developers can use this API documentation to understand how to extend and interact with LabMateAI's internal components.

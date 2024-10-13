@@ -33,7 +33,7 @@ You can install LabMateAI using `pip`:
 pip install labmateai
 ```
 
-LabMateAI requires Python 3.6 or higher.
+LabMateAI requires Python 3.8 or higher.
 
 ---
 
@@ -110,7 +110,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-For questions or support, please contact us at [support@labmateai.io](mailto:support@labmateai.io).
+For questions or support, please [contact us.](mailto:tnoblin@health.ucsd.edu).
 
 ---
 
