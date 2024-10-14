@@ -28,4 +28,4 @@ flake8==6.1.0
 mock>=4.0.3  # Added for mock compatibility
 
 # Pin setuptools to avoid psycopg2 issues
-setuptools==58.0.4  # Added to avoid conflicts with psycopg2 setup
+setuptools==70.0.0  # Added to avoid conflicts with psycopg2 setup
