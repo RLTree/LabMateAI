@@ -46,11 +46,11 @@ class CLI:
         Initializes the CLI and ensures the database is initialized.
         """
         self.db_config = {
-            'dbname': os.getenv('DB_NAME', 'labmate_db'),
-            'user': os.getenv('DB_USER', 'postgres'),
-            'password': os.getenv('DB_PASSWORD', 'password'),
-            'host': os.getenv('DB_HOST', 'localhost'),
-            'port': os.getenv('DB_PORT', '1357')
+            'dbname': os.getenv('DB_NAME', 'de66dcp38h2o4m'),
+            'user': os.getenv('DB_USER', 'u57kmcm3orlrse'),
+            'password': os.getenv('DB_PASSWORD', 'p9ba3c40033c848824b46a92c562a41564a01454a9de36d46c8435d518715185f'),
+            'host': os.getenv('DB_HOST', 'c1v04v8krpfbct.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com'),
+            'port': os.getenv('DB_PORT', '5432')
         }
         self.tools = None
         self.recommender = None
