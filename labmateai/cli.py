@@ -102,7 +102,7 @@ class CLI:
             str: The constructed DATABASE_URL.
         """
         return f"postgresql://{self.db_config['user']}:{self.db_config['password']}@" \
-               f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
+            f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
 
     def _get_or_create_user(self):
         """
