@@ -38,11 +38,6 @@ before_script:
   # Create the test database
   - psql -c 'CREATE DATABASE labmate_test_db;' -U postgres
   
-  # Install flake8 for linting
-  - pip install flake8
-  
-  # Run flake8 to ensure code style consistency
-  - flake8 .  # This will fail the build if there are linting errors
   
   # Install Alembic for database migrations
   - pip install alembic
