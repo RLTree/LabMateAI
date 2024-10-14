@@ -17,13 +17,13 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 # Assuming get_engine returns a SQLAlchemy engine
-from labmateai.database import get_engine
-from labmateai.models import User, Tool as ToolModel, Interaction
-from labmateai.recommender import Recommender, build_user_item_matrix
-from labmateai.collaborative_recommender import CollaborativeRecommender
-from labmateai.hybrid_recommender import HybridRecommender
+from .database import get_engine
+from .models import User, Tool as ToolModel, Interaction
+from .recommender import Recommender, build_user_item_matrix
+from .collaborative_recommender import CollaborativeRecommender
+from .hybrid_recommender import HybridRecommender
 # Assuming Tool is a custom class, alias it to avoid conflict with ToolModel
-from labmateai.tool import Tool as CustomTool
+from .tool import Tool as CustomTool
 
 # Import Alembic API for running migrations programmatically
 from alembic import command
