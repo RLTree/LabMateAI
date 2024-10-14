@@ -18,7 +18,8 @@ sqlalchemy>=1.4.31
 pytest>=7.4.0
 pytest-mock>=3.11.1
 unittest-xml-reporting>=3.0.4  # Added for better test reporting in CI/CD environments
-pytest-cov>=4.0.0  # For measuring code coverage of your tests
+pytest-cov>=4.0.0  # Added for coverage reporting
+pytest-xdist>=2.4.0  # Added for parallel test execution
 pytest-asyncio>=0.20.3  # If asynchronous tests are included
 
 # Linting and code style (optional, but recommended)

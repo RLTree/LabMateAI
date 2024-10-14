@@ -49,7 +49,7 @@ before_script:
 
 # Run tests with coverage reporting
 script:
-  - pytest --cov=labmateai --cov-report=xml --cov-report=term-missing
+  - pytest -n auto --cov=labmateai --cov-report=xml --cov-report=term-missing
 
 # After successful tests, upload coverage reports to Codecov
 after_success:
@@ -62,7 +62,7 @@ deploy:
   password:
     secure: "<pypi-AgEIcHlwaS5vcmcCJGFiZjdkNWY4LTFhZWUtNGRmZS04MWE2LWNlNGUyMWU4ZWJlMQACKlszLCJiYjI2YzRkMC1lZjA4LTRlZmMtOTZmMS0xMTkyNzFjZjM4ZmMiXQAABiATN_pxBDKC66Ol0lFe5jKB_FOdGeX4w93SY0qi9hY1cg>"
   on:
-    tags: true  # Deploy only when a commit is tagged
+    tags: False  # Deploy only when a commit is tagged
     branch: master  # Deploy only when a commit is on the master branch
   distributions: "sdist bdist_wheel"  # Build both source and wheel distributions
 

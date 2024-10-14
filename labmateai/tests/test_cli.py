@@ -4,24 +4,21 @@ from labmateai.cli import CLI
 
 
 class TestCLI(unittest.TestCase):
-
+    @classmethod
     @patch('labmateai.cli.CLI._load_data_and_initialize_recommenders')
     @patch('labmateai.cli.CLI._get_or_create_user', return_value=1)
-    def setUp(self, mock_get_or_create_user, mock_load_data):
+    def setUpClass(cls, mock_get_or_create_user, mock_load_data):
         """
-        Set up the CLI instance and mock necessary methods before each test.
+        Set up the CLI instance and mock necessary methods once before all tests.
         """
         # Initialize CLI
-        self.cli = CLI()
-        # Mock methods
-        self.mock_get_or_create_user = mock_get_or_create_user
-        self.mock_load_data = mock_load_data
+        cls.cli = CLI()
 
         # Mock recommender for use in tests
-        self.cli.recommender = MagicMock()
+        cls.cli.recommender = MagicMock()
 
         # Setup mock tool data
-        self.mock_tool_data = [
+        cls.mock_tool_data = [
             MagicMock(
                 tool_id=1,
                 name="Tool1",
