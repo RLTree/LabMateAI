@@ -15,11 +15,12 @@ services:
 env:
   global:
     # Define a separate test database
-    - POSTGRES_DB=labmate_test_db
-    - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=
+    - POSTGRES_DB=de66dcp38h2o4m
+    - POSTGRES_USER=u57kmcm3orlrse
+    - POSTGRES_PASSWORD=p9ba3c40033c848824b46a92c562a41564a01454a9de36d46c8435d518715185f
     # DATABASE_URL for the test database
-    - TEST_DATABASE_URL=postgresql://postgres@localhost:5432/labmate_test_db
+    - TEST_DATABASE_URL=postgresql://u57kmcm3orlrse:p9ba3c40033c848824b46a92c562a41564a01454a9de36d46c8435d518715185f@c1v04v8krpfbct.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/de66dcp38h2o4m
+
 
 # Upgrade pip and setuptools before installation
 before_install:
