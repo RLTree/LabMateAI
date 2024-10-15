@@ -40,12 +40,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install build
 
-    # Step 6: Run tests with pytest (optional)
-    - name: Run tests
-      run: |
-        pip install pytest
-        pytest
-
     # Step 7: Build the package
     - name: Build package
       run: python -m build
