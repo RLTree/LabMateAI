@@ -59,10 +59,10 @@ after_success:
 deploy:
   provider: pypi
   username: __token__  # Use '__token__' if deploying with an API token
-  password:
-    secure: "<pypi-AgEIcHlwaS5vcmcCJGFiZjdkNWY4LTFhZWUtNGRmZS04MWE2LWNlNGUyMWU4ZWJlMQACKlszLCJiYjI2YzRkMC1lZjA4LTRlZmMtOTZmMS0xMTkyNzFjZjM4ZmMiXQAABiATN_pxBDKC66Ol0lFe5jKB_FOdGeX4w93SY0qi9hY1cg>"
+  password: 
+  secure: "pypi-AgEIcHlwaS5vcmcCJDFkOGZhOGY4LWNkZmMtNDlhYi04ODg5LWI1OWEwMDY1NTY1NwACEVsxLFsibGFibWF0ZWFpIl1dAAIsWzIsWyIwZjFkZjcwZS0xZmQ4LTQzMWUtOGQ0OS1jM2NhYjZkZWFkODYiXV0AAAYgSmDgjEzpS-W3aPmtOidBNj5Bxv3uBd8Kadi7uW8YEso"
   on:
-    tags: False  # Deploy only when a commit is tagged
+    tags: true  # Deploy only when a commit is tagged
     branch: master  # Deploy only when a commit is on the master branch
   distributions: "sdist bdist_wheel"  # Build both source and wheel distributions
 
