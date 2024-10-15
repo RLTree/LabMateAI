@@ -110,9 +110,8 @@ def load_users_from_db():
                     }
                     users.append(user)
 
-    except (Exception, psycopg2.DatabaseError) as error:
-        raise RuntimeError(f"Error loading users from the database: {
-                           error}") from error
+    except (Exception, psycopg2.DatabaseError) as e:
+        raise RuntimeError(f"Error loading users from the database: {e}") from e
 
     return users
 
@@ -156,8 +155,7 @@ def load_interactions_from_db():
                     }
                     interactions.append(interaction)
 
-    except (Exception, psycopg2.DatabaseError) as error:
-        raise RuntimeError(f"Error loading interactions from the database: {
-                           error}") from error
+    except (Exception, psycopg2.DatabaseError) as e:
+        raise RuntimeError(f"Error loading interactions from the database: {e}") from e
 
     return interactions
