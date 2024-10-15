@@ -66,9 +66,8 @@ def load_tools_from_db():
                     )
                     tools.append(tool)
 
-    except (Exception, psycopg2.DatabaseError) as error:
-        raise RuntimeError(f"Error loading tools from the database:{
-                           error}") from error
+    except (Exception, psycopg2.DatabaseError) as e:
+        raise RuntimeError(f"Error loading tools from the database:{e}") from e
 
     return tools
 
