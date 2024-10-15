@@ -111,3 +111,6 @@ instance/
 alembic/versions/*.pyc
 alembic/versions/*.pyo
 alembic/versions/*.tmp
+
+# actions-runner
+/actions-runner/

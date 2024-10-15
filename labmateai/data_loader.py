@@ -5,18 +5,17 @@ This module contains functions for loading tool, user, and interaction data from
 It ensures that each Tool instance includes a unique tool_id and handles data validation.
 """
 
+import os
 import psycopg2
 from psycopg2 import sql
+from dotenv import load_dotenv
 from .tool import Tool
 
-# Database connection parameters
-DB_CONFIG = {
-    'dbname': 'labmate_db',
-    'user': 'postgres',   # Update with your DB username
-    'password': 'password',  # Update with your DB password
-    'host': 'localhost',  # Update with your host if different
-    'port': '1357'  # Updated PostgreSQL port for LabMateAI server
-}
+# Load environment variables from .env file in development
+load_dotenv()
+
+# Database connection string (Pulled from environment variables)
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 
 def load_tools_from_db():
@@ -33,7 +32,7 @@ def load_tools_from_db():
 
     try:
         # Establish a connection to the PostgreSQL database using a context manager
-        with psycopg2.connect(**DB_CONFIG) as conn:
+        with psycopg2.connect(DATABASE_URL) as conn:
             with conn.cursor() as cursor:
                 # Execute SQL query to get tool data
                 query = sql.SQL("""
@@ -68,8 +67,8 @@ def load_tools_from_db():
                     tools.append(tool)
 
     except (Exception, psycopg2.DatabaseError) as error:
-        raise RuntimeError(
-            f"Error loading tools from the database: {error}") from error
+        raise RuntimeError(f"Error loading tools from the database: {
+                           error}") from error
 
     return tools
 
@@ -88,7 +87,7 @@ def load_users_from_db():
 
     try:
         # Establish a connection to the PostgreSQL database using a context manager
-        with psycopg2.connect(**DB_CONFIG) as conn:
+        with psycopg2.connect(DATABASE_URL) as conn:
             with conn.cursor() as cursor:
                 # Execute SQL query to get user data
                 query = sql.SQL("""
@@ -113,8 +112,8 @@ def load_users_from_db():
                     users.append(user)
 
     except (Exception, psycopg2.DatabaseError) as error:
-        raise RuntimeError(
-            f"Error loading users from the database: {error}") from error
+        raise RuntimeError(f"Error loading users from the database: {
+                           error}") from error
 
     return users
 
@@ -133,7 +132,7 @@ def load_interactions_from_db():
 
     try:
         # Establish a connection to the PostgreSQL database using a context manager
-        with psycopg2.connect(**DB_CONFIG) as conn:
+        with psycopg2.connect(DATABASE_URL) as conn:
             with conn.cursor() as cursor:
                 # Execute SQL query to get interaction data
                 query = sql.SQL("""
@@ -159,7 +158,7 @@ def load_interactions_from_db():
                     interactions.append(interaction)
 
     except (Exception, psycopg2.DatabaseError) as error:
-        raise RuntimeError(
-            f"Error loading interactions from the database: {error}") from error
+        raise RuntimeError(f"Error loading interactions from the database: {
+                           error}") from error
 
     return interactions

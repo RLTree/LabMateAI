@@ -1,5 +1,12 @@
 # database.py
+"""
+This module manages database connections and creates SQLAlchemy engine instances.
 
+Functions:
+    get_db_connection: Gets a connection from the connection pool.
+    release_db_connection: Releases a connection back to the pool.
+    get_engine: Creates a SQLAlchemy engine using the provided database configuration.
+"""
 import os
 import logging
 import psycopg2
@@ -14,24 +21,12 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Database connection parameters
-DB_CONFIG = {
-    'dbname': os.getenv('DB_NAME'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'host': os.getenv('DB_HOST'),
-    'port': os.getenv('DB_PORT')
-}
+# Fetch the database URL
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 # Initialize the connection pool
 connection_pool = pool.SimpleConnectionPool(
-    1, 20,  # min and max number of connections
-    dbname=DB_CONFIG['dbname'],
-    user=DB_CONFIG['user'],
-    password=DB_CONFIG['password'],
-    host=DB_CONFIG['host'],
-    port=DB_CONFIG['port'],
-    sslmode='require'
+    1, 20, DATABASE_URL
 )
 
 
@@ -84,7 +79,7 @@ def get_engine(db_config):
     """
     try:
         database_url = f"postgresql://{db_config['user']}:{db_config['password']}@" \
-                       f"{db_config['host']}:{db_config['port']}/{db_config['dbname']}"
+            f"{db_config['host']}:{db_config['port']}/{db_config['dbname']}"
         engine = create_engine(database_url)
         return engine
     except Exception as e:

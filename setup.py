@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name='labmateai',
-    version='1.1.0',
+    version='2.0.1',
     author='Terry Noblin',  # Replace with your actual name
     author_email='tnoblin@health.ucsd.edu',  # Replace with your actual email
     description='An AI-powered recommendation system for laboratory tools and software.',
@@ -17,8 +17,8 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'networkx>=2.5',
-        'numpy>=1.18.0',
+        'networkx==2.8.8',
+        'numpy>=1.23.5',
         'prompt_toolkit>=3.0.0',
         'pandas>=1.5.3',
         'scikit-learn>=1.1.3',
@@ -28,7 +28,10 @@ setup(
         'scipy>=1.9.3',
         'jinja2>=3.1.2',
         'gunicorn>=20.1.0',
-        'psycopg2>=2.9.0'
+        'psycopg2-binary>=2.9.0',  # psycopg2-binary for easier installation
+        'python-dotenv>=0.19.1',
+        'sqlalchemy>=1.4.31',
+        'alembic>=1.7.4',
     ],
     entry_points={
         'console_scripts': [
@@ -58,14 +61,21 @@ setup(
     },
     extras_require={
         'dev': [
-            'pytest>=7.0.0',
-            'pytest-cov>=3.0.0',
+            'pytest>=7.4.0',
+            'pytest-cov>=4.0.0',
+            'pytest-xdist>=2.4.0',  # For parallel test execution
+            'pytest-asyncio>=0.20.3',  # If asynchronous tests are included
+            'pytest-mock>=3.11.1',
+            'unittest-xml-reporting>=3.0.4',
+            'flake8>=6.1.0',
             'mock>=4.0.3',
-            'flake8>=6.1.0'
         ],
         'docs': [
             'sphinx>=4.0.0',
             'furo>=2021.8.14',
         ],
     },
+    setup_requires=[
+        'setuptools>=70.0.0',  # Pinning setuptools to avoid psycopg2 issues
+    ],
 )
