@@ -13,6 +13,7 @@ gunicorn>=20.1.0
 psycopg2-binary>=2.9.0  # Switched from psycopg2 to psycopg2-binary for easier installation
 python-dotenv>=0.19.1
 sqlalchemy>=1.4.31
+alembic>=1.7.4  # Added for database migrations
 
 # Testing dependencies
 pytest>=7.4.0
@@ -22,11 +23,13 @@ pytest-cov>=4.0.0  # Added for coverage reporting
 pytest-xdist>=2.4.0  # Added for parallel test execution
 pytest-asyncio>=0.20.3  # If asynchronous tests are included
 
-# Linting and code style (optional, but recommended)
-flake8==6.1.0
+# Development dependencies (optional but recommended)
+flake8>=6.1.0
+# mock>=4.0.3  # Remove if not needed
 
-# Mocking dependencies
-mock>=4.0.3  # Added for mock compatibility
+# Documentation dependencies (optional)
+sphinx>=4.0.0
+furo>=2021.8.14
 
-# Pin setuptools to avoid psycopg2 issues
-setuptools==70.0.0  # Added to avoid conflicts with psycopg2 setup
+# Pre-commit for linting and formatting (optional)
+pre-commit>=2.20.0ß

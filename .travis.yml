@@ -1,11 +1,14 @@
 language: python
 
 python:
-  - "3.8"
-  - "3.9"
+  - "3.12"  # Specify the Python version to use
+
+env:
+  - TESTING=True
 
 # Enable caching for pip to speed up builds by reusing previously downloaded packages
-cache: pip
+cache: 
+pip: true
 
 # Add PostgreSQL service for testing database interactions
 services:
