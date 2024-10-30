@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name='labmateai',
-    version='2.0.1',
+    version='2.0.2',
     author='Terry Noblin',  # Replace with your actual name
     author_email='tnoblin@health.ucsd.edu',  # Replace with your actual email
     description='An AI-powered recommendation system for laboratory tools and software.',
@@ -39,15 +39,14 @@ setup(
         ],
     },
     classifiers=[
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.12',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'License :: OSI Approved :: MIT License',
     ],
     license='MIT',
-    python_requires='>=3.8',
+    python_requires='>=3.12',
     keywords=[
         'AI',
         'Recommendation System',

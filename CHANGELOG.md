@@ -8,6 +8,40 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2.0.2] - 2024-10-20
+
+### Added
+
+- **Comprehensive Database Testing**:
+  - Implemented a robust test suite for `labmateai_db.py`, ensuring reliable creation and configuration of the SQLAlchemy engine.
+  
+- **Continuous Integration Enhancements**:
+  - Updated `.travis.yml` to conditionally run Alembic migrations based on the testing environment.
+  - Integrated coverage reporting and Codecov for improved visibility of test coverage.
+  
+- **Updated Dependencies**:
+  - Added `alembic`, `pytest-cov`, `pytest-xdist`, and other testing tools to `requirements.txt` to support enhanced testing and coverage capabilities.
+
+### Fixed
+
+- **CLI Import Errors**:
+  - Resolved `ImportError` by replacing relative imports with absolute imports in `cli.py`, ensuring smooth execution of migration commands.
+  
+- **Test Failures in Migration Tests**:
+  - Addressed and fixed issues in `test_cli.py` related to database migrations and user creation tests, ensuring all tests pass successfully.
+  
+- **Database Configuration Handling**:
+  - Enhanced the `get_engine` function in `labmateai_db.py` to better handle testing scenarios and invalid configurations, preventing unexpected crashes.
+
+### Improved
+
+- **Requirements Management**:
+  - Streamlined `requirements.txt` by removing redundant packages and ensuring all necessary dependencies are included for both development and testing.
+  
+- **CI/CD Workflow**:
+  - Optimized the Travis CI configuration for faster and more reliable builds, leveraging caching and parallel test execution.
+
+---
 
 ## [2.0.1] - 2024-10-15
 
@@ -15,6 +49,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - **Database Connection Issues**:
   Fixed issue with users connecting to LabMateAI database.
+
+---
 
 ## [2.0.0] - 2024-10-11
 
