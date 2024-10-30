@@ -32,4 +32,4 @@ sphinx>=4.0.0
 furo>=2021.8.14
 
 # Pre-commit for linting and formatting (optional)
-pre-commit>=2.20.0ß
+pre-commit>=2.20.0
