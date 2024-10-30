@@ -12,22 +12,9 @@ import sys
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-import pandas as pd
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-
-# Assuming get_engine returns a SQLAlchemy engine
-from .database import get_engine
-from .models import User, Tool as ToolModel, Interaction
-from .recommender import Recommender, build_user_item_matrix
-from .collaborative_recommender import CollaborativeRecommender
-from .hybrid_recommender import HybridRecommender
-# Assuming Tool is a custom class, alias it to avoid conflict with ToolModel
-from .tool import Tool as CustomTool
-
-# Import Alembic API for running migrations programmatically
 from alembic import command
 from alembic.config import Config
+import pandas as pd
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -41,10 +28,14 @@ class CLI:
     Command-Line Interface for LabMateAI.
     """
 
-    def __init__(self):
+    def __init__(self, testing=False):
         """
         Initializes the CLI and ensures the database is initialized.
+
+        Args:
+            testing (bool): If True, uses a test database configuration.
         """
+        self.testing = testing
         self.db_config = {
             'dbname': os.getenv('DB_NAME', 'de66dcp38h2o4m'),
             'user': os.getenv('DB_USER', 'u57kmcm3orlrse'),
@@ -59,31 +50,53 @@ class CLI:
         self.data_loaded = False
 
         # Initialize the database migrations
-        self._run_migrations()
+        if not self.testing:
+            self._run_migrations()
+        else:
+            logging.info("Skipping migrations during testing.")
 
         # Initialize the database engine and session
-        self.engine = get_engine(self.db_config)
-        self.Session = sessionmaker(bind=self.engine)
+        self.engine = self._get_engine()
+        self.Session = self._get_session_maker()
+
+    def _get_engine(self):
+        """
+        Lazily imports and returns the SQLAlchemy engine.
+        """
+        from .labmateai_db import get_engine
+        if self.testing:
+            os.environ['TESTING'] = 'True'
+        return get_engine(self.db_config)
+
+    def _get_session_maker(self):
+        """
+        Creates and returns a sessionmaker bound to the engine.
+        """
+        from sqlalchemy.orm import sessionmaker
+        return sessionmaker(bind=self.engine)
 
     def _run_migrations(self):
         """
         Runs Alembic migrations to ensure the database schema is up-to-date.
         """
+        if self.testing:
+            # Skip migrations during testing
+            logging.info("Skipping migrations during testing.")
+            return
+
         try:
             # Locate the Alembic configuration file
             current_dir = os.path.dirname(os.path.abspath(__file__))
             parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
             alembic_cfg_path = os.path.join(parent_dir, 'alembic.ini')
             if not os.path.exists(alembic_cfg_path):
-                logging.error(
-                    "Alembic configuration file 'alembic.ini' not found.")
+                logging.error("Alembic configuration file 'alembic.ini' not found.")
                 print("Migration failed: 'alembic.ini' not found.")
                 sys.exit(1)
 
             alembic_cfg = Config(alembic_cfg_path)
             # Set the sqlalchemy.url in alembic configuration to the DATABASE_URL
-            alembic_cfg.set_main_option(
-                'sqlalchemy.url', self._construct_database_url())
+            alembic_cfg.set_main_option('sqlalchemy.url', self._construct_database_url())
 
             # Run migrations
             logging.info("Running Alembic migrations...")
@@ -101,13 +114,18 @@ class CLI:
         Returns:
             str: The constructed DATABASE_URL.
         """
+        if os.getenv('TESTING') == 'True':
+            return 'sqlite:///:memory:'
         return f"postgresql://{self.db_config['user']}:{self.db_config['password']}@" \
-            f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
+               f"{self.db_config['host']}:{self.db_config['port']}/{self.db_config['dbname']}"
 
     def _get_or_create_user(self):
         """
         Handles user login or sign-up.
         """
+        # Import models and sessionmaker here to avoid module-level imports
+        from .models import User
+
         session = self.Session()
         try:
             print("\n--- LabMateAI User Login/Signup ---")
@@ -133,6 +151,7 @@ class CLI:
                 )
                 session.add(new_user)
                 session.commit()
+                session.refresh(new_user)  # Refresh to get the user_id
                 print(
                     f"User successfully signed up! Welcome, {new_user.user_name}.")
                 user_id = new_user.user_id
@@ -155,6 +174,9 @@ class CLI:
             rating (int, optional): User rating for the tool (0-5).
             usage_frequency (str, optional): Frequency of tool usage.
         """
+        # Import models here to avoid module-level imports
+        from .models import Interaction
+
         session = self.Session()
         try:
             interaction = Interaction(
@@ -173,12 +195,36 @@ class CLI:
         finally:
             session.close()
 
+    def _get_number_of_recommendations(self):
+        """
+        Prompts the user to enter the number of recommendations they want.
+        Defaults to 3 if no valid input is provided.
+
+        Returns:
+            int: Number of recommendations.
+        """
+        while True:
+            num_input = input("How many recommendations would you like? (default 3): ").strip()
+            if num_input == '':
+                return 3
+            elif num_input.isdigit() and int(num_input) > 0:
+                return int(num_input)
+            else:
+                print("Please enter a positive integer.")
+
     def _load_data_and_initialize_recommenders(self):
         """
         Loads data and initializes the recommenders.
         """
         if not self.data_loaded:
             try:
+                # Import models and recommender classes here
+                from .models import Tool as ToolModel, Interaction
+                from .recommenders.content_based_recommender import ContentBasedRecommender, build_user_item_matrix
+                from .recommenders.collaborative_recommender import CollaborativeRecommender
+                from .recommenders.hybrid_recommender import HybridRecommender
+                from .tool import Tool as CustomTool
+
                 session = self.Session()
 
                 # Load tools from the tools table
@@ -194,8 +240,8 @@ class CLI:
 
                     if isinstance(tool.features, list):
                         # features is already a list
-                        features_processed = [feature.strip().lower(
-                        ) for feature in tool.features if feature.strip()]
+                        features_processed = [feature.strip().lower()
+                                              for feature in tool.features if feature.strip()]
                     elif isinstance(tool.features, str):
                         # Assuming features are stored as "{feature1, feature2, feature3}"
                         # Remove curly braces and split by comma
@@ -213,7 +259,7 @@ class CLI:
                         tool_id=tool.tool_id,
                         name=tool.name,
                         category=tool.category,
-                        features=features_processed,
+                        features=tuple(features_processed),
                         cost=tool.cost,
                         description=tool.description,
                         url=tool.url,
@@ -223,7 +269,7 @@ class CLI:
                     self.tools.append(custom_tool)
 
                 # Initialize the Recommender for content-based recommendations
-                self.recommender = Recommender(tools=self.tools)
+                self.recommender = ContentBasedRecommender(tools=self.tools)
 
                 # Load user-item interactions from the database
                 interactions_data = session.query(Interaction).filter(
@@ -239,14 +285,13 @@ class CLI:
                     logging.debug("Interactions DataFrame: \n%s", interactions)
 
                     # Build user-item matrix
-                    user_item_matrix = build_user_item_matrix(interactions)
-                    logging.debug("User-item matrix: \n%s", user_item_matrix)
+                    if not interactions.empty:
+                        user_item_matrix = build_user_item_matrix(interactions)
+                        logging.debug("User-item matrix: \n%s", user_item_matrix)
 
-                    # Initialize Collaborative Filtering Recommender
-                    if not user_item_matrix.empty:
-                        self.cf_recommender = CollaborativeRecommender(
-                            user_item_matrix=user_item_matrix,
-                            tools_df=pd.DataFrame([{
+                        # Initialize Collaborative Filtering Recommender
+                        if not user_item_matrix.empty:
+                            tools_df = pd.DataFrame([{
                                 'tool_id': tool.tool_id,
                                 'name': tool.name,
                                 'category': tool.category,
@@ -256,19 +301,28 @@ class CLI:
                                 'url': tool.url,
                                 'language': tool.language,
                                 'platform': tool.platform
-                            } for tool in tools_data]),
-                            n_neighbors=5
-                        )
+                            } for tool in tools_data])
 
-                        # Initialize Hybrid Recommender
-                        self.hybrid_recommender = HybridRecommender(
-                            content_recommender=self.recommender,
-                            collaborative_recommender=self.cf_recommender,
-                            alpha=0.5
-                        )
+                            self.cf_recommender = CollaborativeRecommender(
+                                user_item_matrix=user_item_matrix,
+                                tools_df=tools_df,
+                                n_neighbors=5
+                            )
+
+                            # Initialize Hybrid Recommender
+                            self.hybrid_recommender = HybridRecommender(
+                                content_recommender=self.recommender,
+                                collaborative_recommender=self.cf_recommender,
+                                alpha=0.5
+                            )
+                        else:
+                            logging.warning(
+                                "User-item matrix is empty. Collaborative filtering will not be available.")
+                            self.cf_recommender = None
+                            self.hybrid_recommender = None
                     else:
                         logging.warning(
-                            "User-item matrix is empty. Collaborative filtering will not be available.")
+                            "Interactions DataFrame is empty. Collaborative filtering will not be available.")
                         self.cf_recommender = None
                         self.hybrid_recommender = None
                 else:
@@ -306,41 +360,33 @@ class CLI:
                 try:
                     tool_id_input = input(
                         "Enter the Tool ID you want to rate: ").strip()
-                    rating_input = input(
-                        "Enter your rating for the tool (0-5): ").strip()
-                    usage_frequency = input(
-                        "Enter your usage frequency for the tool (e.g., Often, Sometimes, Rarely): ").strip()
-
-                    # Validate tool_id
                     if not tool_id_input.isdigit():
-                        print("Invalid Tool ID. Please enter a numeric value.")
+                        print("Invalid Tool ID. Please enter a numeric value: ")
                         continue
                     tool_id = int(tool_id_input)
 
-                    # Check if tool_id is in recommendations
+                    # Checking if tool_id is in recommendations
                     if not any(tool.tool_id == tool_id for tool in recommendations):
-                        print(
-                            "The Tool ID entered is not in the current recommendations.")
+                        print("The Tool ID is not in the current recommendations.")
                         continue
 
-                    # Validate rating
-                    if not rating_input.isdigit():
-                        print(
-                            "Invalid rating. Please enter a numeric value between 0 and 5.")
-                        continue
+                    rating_input = input(
+                        "Enter your rating for the tool (0-5): ").strip()
+                    while not rating_input.isdigit() or not (0 <= int(rating_input) <= 5):
+                        rating_input = input("Invalid rating. Please enter a numeric value between 0 and 5: ").strip()
                     rating = int(rating_input)
 
-                    if 0 <= rating <= 5:
-                        # Log the interaction
-                        self._log_interaction(
-                            user_id=user_id, tool_id=tool_id, rating=rating, usage_frequency=usage_frequency)
-                        break
-                    else:
-                        print(
-                            "Invalid rating. Please enter a number between 0 and 5.")
+                    # Prompt for usage frequency
+                    usage_frequency = input(
+                        "Enter your usage frequency for the tool (e.g., Often, Sometimes, Rarely, Never): ").strip()
+
+                    # Log the interaction
+                    self._log_interaction(
+                        user_id=user_id, tool_id=tool_id, rating=rating, usage_frequency=usage_frequency)
+                    break
                 except ValueError:
                     print(
-                        "Invalid input. Please enter numeric values for Tool ID and rating.")
+                        "Invalid input. Please ensure all entries are correct.")
             elif rate_choice in ['no', 'n']:
                 break
             else:
@@ -350,57 +396,77 @@ class CLI:
         """
         Handles recommending similar tools based on a tool name provided by the user.
         """
-        tool_name = input("Enter the name of a tool you like: ").strip()
-        recommendations = self.recommender.recommend_similar_tools(tool_name)
-
-        if recommendations:
-            print("\nRecommendations:")
-            for tool in recommendations:
-                print(
-                    f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
-            # Prompt for rating after recommendations
-            self._prompt_rating(recommendations, user_id)
-        else:
-            print("No similar tools found.")
+        try:
+            tool_name = input("Enter the name of a tool you like: ").strip()
+            num_recommendations = self._get_number_of_recommendations()
+            recommendations = self.recommender.recommend_similar_tools(tool_name, num_recommendations)
+            if recommendations:
+                print("\nRecommendations:")
+                for tool in recommendations:
+                    print(
+                        f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
+                # Prompt for rating after recommendations
+                self._prompt_rating(recommendations, user_id)
+            else:
+                print("No similar tools found.")
+        except Exception as e:
+            logging.error("Error during recommending similar tools: %s", e)
+            print("An error occurred while fetching recommendations. Please try again.")
 
     def handle_recommend_category_tools(self, user_id):
         """
         Handles recommending tools within a specified category.
         """
-        category = input(
-            "Enter the category of tools you're interested in: ").strip()
-        recommendations = [
-            tool for tool in self.tools if tool.category.lower() == category.lower()]
+        try:
+            category = input(
+                "Enter the category of tools you're interested in: ").strip()
+            num_recommendations = self._get_number_of_recommendations()
+            recommendations = [
+                tool for tool in self.tools if tool.category.lower() == category.lower()]
 
-        if recommendations:
-            print("\nRecommendations:")
-            for tool in recommendations:
-                print(
-                    f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
-            # Prompt for rating after recommendations
-            self._prompt_rating(recommendations, user_id)
-        else:
-            print("No tools found in this category.")
+            # Limit the number of recommendations
+            recommendations = recommendations[:num_recommendations]
+
+            if recommendations:
+                print("\nRecommendations:")
+                for tool in recommendations:
+                    print(
+                        f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
+                # Prompt for rating after recommendations
+                self._prompt_rating(recommendations, user_id)
+            else:
+                print("No tools found in this category.")
+        except Exception as e:
+            logging.error("Error during recommending category tools: %s", e)
+            print("An error occurred while fetching recommendations. Please try again.")
 
     def handle_search_tools(self, user_id):
         """
         Handles searching for tools based on a keyword.
         """
-        keyword = input(
-            "Enter a keyword to search for tools: ").strip().lower()
-        recommendations = [
-            tool for tool in self.tools if keyword in tool.name.lower() or keyword in tool.description.lower()
-        ]
+        try:
+            keyword = input(
+                "Enter a keyword to search for tools: ").strip().lower()
+            num_recommendations = self._get_number_of_recommendations()
+            recommendations = [
+                tool for tool in self.tools if keyword in tool.name.lower() or keyword in tool.description.lower()
+            ]
 
-        if recommendations:
-            print("\nSearch Results:")
-            for tool in recommendations:
-                print(
-                    f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
-            # Prompt for rating after recommendations
-            self._prompt_rating(recommendations, user_id)
-        else:
-            print("No tools found for the given keyword.")
+            # Limit the number of recommendations
+            recommendations = recommendations[:num_recommendations]
+
+            if recommendations:
+                print("\nSearch Results:")
+                for tool in recommendations:
+                    print(
+                        f"- {tool.name} (ID: {tool.tool_id}): {tool.description} (Cost: {tool.cost})")
+                # Prompt for rating after recommendations
+                self._prompt_rating(recommendations, user_id)
+            else:
+                print("No tools found for the given keyword.")
+        except Exception as e:
+            logging.error("Error during searching tools: %s", e)
+            print("An error occurred while searching for tools. Please try again.")
 
     def start(self):
         """
@@ -427,7 +493,7 @@ class CLI:
                 self.handle_search_tools(user_id)
             elif choice == '4':
                 print("Exiting LabMateAI. Goodbye!")
-                break
+                sys.exit(0)
             else:
                 print("Invalid choice. Please enter a number between 1 and 4.")
 
