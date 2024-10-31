@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "labmateai"
-version = "2.0.2"
+version = "2.0.4"
 authors = [
   { name="Terry Noblin", email="tnoblin@health.ucsd.edu" }
 ]
