@@ -88,6 +88,9 @@ class CLI:
         try:
             # Locate alembic.ini within the labmateai package
             with resources.path('labmateai', 'alembic.ini') as alembic_ini_path:
+                logging.debug(f"Looking for alembic.ini at: {alembic_ini_path}")
+                if not alembic_ini_path.exists():
+                    raise FileNotFoundError(f"alembic.ini not found at {alembic_ini_path}")
                 alembic_cfg = Config(str(alembic_ini_path))
             
                 # Set the sqlalchemy.url in Alembic configuration to the DATABASE_URL

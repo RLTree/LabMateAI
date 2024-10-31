@@ -1,18 +1,17 @@
 # pyproject.toml
 
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.2.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "labmateai"
-version = "2.0.4"
+version = "2.0.5"
 authors = [
-  { name="Terry Noblin", email="tnoblin@health.ucsd.edu" }
+  { name = "Terry Noblin", email = "tnoblin@health.ucsd.edu" }
 ]
 description = "An AI-powered recommendation system for laboratory tools and software."
 readme = "README.md"
-readme-content-type = "text/markdown"
 license = { text = "MIT" }
 requires-python = ">=3.12"
 keywords = ["AI", "Recommendation System", "Laboratory Tools", "Scientific Software", "Bioinformatics"]
@@ -23,6 +22,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "License :: OSI Approved :: MIT License"
 ]
+
 dependencies = [
     "networkx==2.8.8",
     "numpy>=1.23.5",
@@ -54,12 +54,12 @@ dev = [
     "pytest-mock>=3.11.1",
     "unittest-xml-reporting>=3.0.4",
     "flake8>=6.1.0",
-    # "mock>=4.0.3",  # Remove if not needed
+    "mock>=4.0.3"
 ]
 docs = [
     "sphinx>=4.0.0",
     "furo>=2021.8.14",
 ]
 
-[project.entry-points.console_scripts]
+[project.scripts]
 labmateai = "labmateai.cli:main"
