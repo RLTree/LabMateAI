@@ -1,6 +1,4 @@
 # alembic/env.py
-
-from labmateai.models import Base
 from logging.config import fileConfig
 import os
 import sys
