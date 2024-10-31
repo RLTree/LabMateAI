@@ -12,6 +12,7 @@ import sys
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
+from importlib import resources
 from alembic import command
 from alembic.config import Config
 import pandas as pd
@@ -85,23 +86,17 @@ class CLI:
             return
 
         try:
-            # Locate the Alembic configuration file
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-            alembic_cfg_path = os.path.join(parent_dir, 'alembic.ini')
-            if not os.path.exists(alembic_cfg_path):
-                logging.error("Alembic configuration file 'alembic.ini' not found.")
-                print("Migration failed: 'alembic.ini' not found.")
-                sys.exit(1)
+            # Locate alembic.ini within the labmateai package
+            with resources.path('labmateai', 'alembic.ini') as alembic_ini_path:
+                alembic_cfg = Config(str(alembic_ini_path))
+            
+                # Set the sqlalchemy.url in Alembic configuration to the DATABASE_URL
+                alembic_cfg.set_main_option('sqlalchemy.url', self._construct_database_url())
 
-            alembic_cfg = Config(alembic_cfg_path)
-            # Set the sqlalchemy.url in alembic configuration to the DATABASE_URL
-            alembic_cfg.set_main_option('sqlalchemy.url', self._construct_database_url())
-
-            # Run migrations
-            logging.info("Running Alembic migrations...")
-            command.upgrade(alembic_cfg, "head")
-            logging.info("Alembic migrations applied successfully.")
+                # Run migrations
+                logging.info("Running Alembic migrations...")
+                command.upgrade(alembic_cfg, "head")
+                logging.info("Alembic migrations applied successfully.")
         except Exception as e:
             logging.error("Failed to apply Alembic migrations: %s", e)
             print("Migration failed. Please check the logs for more details.")

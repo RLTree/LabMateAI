@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name='labmateai',
-    version='2.0.2',
+    version='2.0.3',
     author='Terry Noblin',  # Replace with your actual name
     author_email='tnoblin@health.ucsd.edu',  # Replace with your actual email
     description='An AI-powered recommendation system for laboratory tools and software.',

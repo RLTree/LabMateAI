@@ -24,6 +24,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import your models here
+from labmateai.models import Base  # noqa: E402
 
 # Set target_metadata for 'autogenerate' support
 target_metadata = Base.metadata
